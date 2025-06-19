@@ -1,5 +1,3 @@
-version: '3.8'  # optional, but harmless
-
 services:
   db:
     image: postgres:15
