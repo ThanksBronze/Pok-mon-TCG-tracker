@@ -1,0 +1,17 @@
+# Node modules
+node_modules/
+
+# React build
+build/
+
+# Env-filer
+.env
+
+# Docker
+docker-compose.override.yml
+
+# OS-filer
+.DS_Store
+
+# IDE
+.vscode/
