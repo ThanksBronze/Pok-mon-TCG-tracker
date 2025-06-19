@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
@@ -17,12 +18,6 @@
     "lint": "eslint . --ext .js,.jsx",
     "test": "jest --coverage",
     "ci": "npm run lint && npm run test"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [
