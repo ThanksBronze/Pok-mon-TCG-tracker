@@ -1,22 +1,36 @@
+import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import globals from "globals";
 import pluginReact from "eslint-plugin-react";
-import { defineConfig } from "eslint/config";
 
+const reactFlat = pluginReact.configs.flat?.recommended ?? {};
+const {
+  languageOptions: reactLang = {},
+  rules: reactRules = {},
+  settings: reactSettings = {},
+} = reactFlat;
 
 export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,jsx}"], plugins: { js }, extends: ["js/recommended"] },
-  { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
-  { files: ["**/*.{js,mjs,cjs,jsx}"], languageOptions: { globals: globals.node } },
-  pluginReact.configs.flat.recommended,
+  // 1) base JS rules
   {
-    files: ["**/tests/**/*.js", "**/*.test.js"],
-    env: { jest: true },
+    files: ["**/*.{js,mjs,cjs,jsx}"],
+    plugins: { js },
+    extends: ["js/recommended"],
     languageOptions: {
+      sourceType: "commonjs",
+      ecmaVersion: "latest",
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.browser,
+        ...reactLang.globals,
       },
+    },
+    rules: {
+      ...reactRules
+    },
+    settings: {
+      react: { version: "detect" },
+      ...reactSettings
     },
   },
 ]);
