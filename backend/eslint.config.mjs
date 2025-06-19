@@ -9,4 +9,14 @@ export default defineConfig([
   { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
   { files: ["**/*.{js,mjs,cjs,jsx}"], languageOptions: { globals: globals.node } },
   pluginReact.configs.flat.recommended,
+  {
+    files: ["**/tests/**/*.js", "**/*.test.js"],
+    env: { jest: true },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
+  },
 ]);

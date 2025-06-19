@@ -15,3 +15,6 @@ docker-compose.override.yml
 
 # IDE
 .vscode/
+
+# Jest code‐coverage output
+coverage/
