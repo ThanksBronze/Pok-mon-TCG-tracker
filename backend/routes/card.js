@@ -14,7 +14,7 @@ router.get('/', async(req, res, next) => {
 	} catch (err) { next(err); }
 });
 
-//GET /api/cards/:id
+// GET /api/cards/:id
 router.get('/:id', async(req, res, next) => {
 	try{
 		const {rows} = await pool.query(
@@ -25,3 +25,22 @@ router.get('/:id', async(req, res, next) => {
 		res.json(rows[0]);
 	} catch(err) {next(err);}
 });
+
+// POST /api/cards
+router.post('/',
+	body('name').isString().notEmpty(),
+	body('set_id').isInt(),
+	body('type_id').isInt(),
+	body('no_in_set').optional().isInt({min: 0}),
+	async(req, res, next) => {
+		const errors = validationReslut(req);
+		if(!errors.isEmpty()) return res.status(400).json({errors: errors.array()});
+		const{name, set_id, type_id, no_in_set = 1} = req.body;
+		try{
+			const{rows} = await pool.query(
+				'INSERT INTO cards(name, set_id, type_id, no_in_set, user_id)\nVALUES($1,$2,$3,4$5) RETURNING *',
+				[name, set_id, type_id, no_in_set, req.user.id]
+			);
+		}catch (err) {next(err);}
+	}
+);
