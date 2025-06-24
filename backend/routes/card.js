@@ -41,6 +41,7 @@ router.post('/',
 				'INSERT INTO cards(name, set_id, type_id, no_in_set, user_id) VALUES($1,$2,$3,4$5) RETURNING *',
 				[name, set_id, type_id, no_in_set, req.user.id]
 			);
+			res.status(201).json(rows[0]);
 		}catch (err) {next(err);}
 	}
 );
@@ -68,6 +69,8 @@ router.post(
 				'RETURNING *',
 				[name, set_id, type_id, no_in_set, req.params.id, req.user.id]
 			);
+			if(!rows.length) return res.status(404).json({message: 'Kortet finns inte'});
+			res.json(rows[0]);
 		} catch (err) {next(err);}
 	}
 );
