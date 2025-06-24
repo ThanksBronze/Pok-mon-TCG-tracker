@@ -1,80 +1,123 @@
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()
-  RETURNS TRIGGER AS $$
+	RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+	NEW.updated_at = NOW();
+	RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 
 CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  email VARCHAR(100) UNIQUE,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_at TIMESTAMP NULL
+	id SERIAL PRIMARY KEY,
+	username VARCHAR(50) UNIQUE NOT NULL,
+	email VARCHAR(100) UNIQUE,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE IF NOT EXISTS roles (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(50) UNIQUE NOT NULL
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user_roles (
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
-  PRIMARY KEY (user_id, role_id)
+	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+	PRIMARY KEY (user_id, role_id)
 );
 
 CREATE TABLE IF NOT EXISTS series (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_at TIMESTAMP NULL
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(100) NOT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE IF NOT EXISTS card_types (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE,
-  category VARCHAR(100),
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_at TIMESTAMP NULL
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(100) NOT NULL UNIQUE,
+	category VARCHAR(100),
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE IF NOT EXISTS sets (
-  id SERIAL PRIMARY KEY,
-  series_id INTEGER NOT NULL REFERENCES series(id) ON DELETE CASCADE,
-  set_no INTEGER,
-  symbol VARCHAR(50),
-  logo VARCHAR(255),
-  name_of_expansion VARCHAR(100) NOT NULL,
-  type_of_expansion VARCHAR(100),
-  no_of_cards INTEGER,
-  release_date DATE,
-  set_abb VARCHAR(10),
-  notes TEXT,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_at TIMESTAMP NULL
+	id SERIAL PRIMARY KEY,
+	series_id INTEGER NOT NULL REFERENCES series(id) ON DELETE CASCADE,
+	set_no INTEGER,
+	symbol VARCHAR(50),
+	logo VARCHAR(255),
+	name_of_expansion VARCHAR(100) NOT NULL,
+	type_of_expansion VARCHAR(100),
+	no_of_cards INTEGER,
+	release_date DATE,
+	set_abb VARCHAR(10),
+	notes TEXT,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL
 );
 
 CREATE TABLE IF NOT EXISTS cards (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  type_id INTEGER NOT NULL REFERENCES card_types(id),
-  set_id INTEGER NOT NULL REFERENCES sets(id) ON DELETE CASCADE,
-  no_in_set INTEGER,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  deleted_at TIMESTAMP NULL,
-  CONSTRAINT uq_cards_user_set_name UNIQUE (user_id, set_id, name)
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(100) NOT NULL,
+	type_id INTEGER NOT NULL REFERENCES card_types(id),
+	set_id INTEGER NOT NULL REFERENCES sets(id) ON DELETE CASCADE,
+	no_in_set INTEGER,
+	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL,
+	CONSTRAINT uq_cards_user_set_name UNIQUE (user_id, set_id, name)
 );
 
+CREATE TABLE IF NOT EXISTS categories (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(100) NOT NULL UNIQUE,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL
+);
 
+CREATE TABLE IF NOT EXISTS card_categories (
+	card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+	category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+	PRIMARY KEY (card_id, category_id)
+);
+
+CREATE TABLE IF NOT EXISTS notes (
+	id SERIAL PRIMARY KEY,
+	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+	content TEXT NOT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+DO $$
+BEGIN
+	FOR tbl IN ARRAY[
+		'users','roles','user_roles','series','card_types','sets','cards','categories','card_categories','notes'
+	] LOOP
+		EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I;', tbl);
+		EXECUTE format(
+			'CREATE TRIGGER set_timestamp
+				BEFORE UPDATE ON %I
+				FOR EACH ROW
+				EXECUTE FUNCTION trigger_set_timestamp();',
+			tbl
+		);
+	END LOOP;
+END;
+$$;
+
+
+CREATE INDEX IF NOT EXISTS idx_cards_user ON cards(user_id);
+CREATE INDEX IF NOT EXISTS idx_cards_set ON cards(set_id);
+CREATE INDEX IF NOT EXISTS idx_cards_type ON cards(type_id);
+CREATE INDEX IF NOT EXISTS idx_card_categories_category ON card_categories(category_id);
 
 /* INSERTED DATA*/
 
