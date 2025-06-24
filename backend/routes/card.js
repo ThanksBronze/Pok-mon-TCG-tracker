@@ -38,9 +38,36 @@ router.post('/',
 		const{name, set_id, type_id, no_in_set = 1} = req.body;
 		try{
 			const{rows} = await pool.query(
-				'INSERT INTO cards(name, set_id, type_id, no_in_set, user_id)\nVALUES($1,$2,$3,4$5) RETURNING *',
+				'INSERT INTO cards(name, set_id, type_id, no_in_set, user_id) VALUES($1,$2,$3,4$5) RETURNING *',
 				[name, set_id, type_id, no_in_set, req.user.id]
 			);
 		}catch (err) {next(err);}
 	}
 );
+
+// PUT api/cards
+router.post(
+	body('name').optional().isString(),
+	body('set_id').optional().isInt(),
+	body('type_id').optional().isInt(),
+	body('no_in_set').optional().isInt({min: 0}),
+	async(req, res, next) => {
+		const errors = validationReslut(req);
+		if(!errors.isEmpty()) return res.status(400).json({errors: errors.array()});
+
+		const {name, set_id, type_id, no_in_set} = req.body;
+		try{
+			const{rows} = await pool.query(
+				'UPDATE cards' +
+				'SET name = COALESCE($1, name),' +
+					'set_id = COALESCE($2, set_id),' +
+					'type_id = COALESCE($3, type_id)' +
+					'no_in_set = COALESCE($3, no_in_set)' +
+					'updated_at = now()' +
+				'WHERE id = $5 AND user_id = $6 AND (delted_at IS NULL)' +
+				'RETURNING *',
+				[name, set_id, type_id, no_in_set, req.params.id, req.user.id]
+			);
+		} catch (err) {next(err);}
+	}
+)
