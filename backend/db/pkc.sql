@@ -1,23 +1,52 @@
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE
-);
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+  RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE TABLE series (
+
+CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(100) UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMP NULL
 );
 
-CREATE TABLE card_types (
+CREATE TABLE IF NOT EXISTS roles (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS series (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMP NULL
+);
+
+CREATE TABLE IF NOT EXISTS card_types (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
-  category VARCHAR(100)
+  category VARCHAR(100),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMP NULL
 );
 
-CREATE TABLE sets (
+CREATE TABLE IF NOT EXISTS sets (
   id SERIAL PRIMARY KEY,
-  series_id INTEGER NOT NULL,
+  series_id INTEGER NOT NULL REFERENCES series(id) ON DELETE CASCADE,
   set_no INTEGER,
   symbol VARCHAR(50),
   logo VARCHAR(255),
@@ -27,19 +56,22 @@ CREATE TABLE sets (
   release_date DATE,
   set_abb VARCHAR(10),
   notes TEXT,
-  CONSTRAINT fk_series FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMP NULL
 );
 
-CREATE TABLE cards (
+CREATE TABLE IF NOT EXISTS cards (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
-  type_id INTEGER NOT NULL,
-  set_id INTEGER NOT NULL,
+  type_id INTEGER NOT NULL REFERENCES card_types(id),
+  set_id INTEGER NOT NULL REFERENCES sets(id) ON DELETE CASCADE,
   no_in_set INTEGER,
-  user_id INTEGER NOT NULL,
-  CONSTRAINT fk_set FOREIGN KEY (set_id) REFERENCES sets(id) ON DELETE CASCADE,
-  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_type FOREIGN KEY (type_id) REFERENCES card_types(id)
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMP NULL,
+  CONSTRAINT uq_cards_user_set_name UNIQUE (user_id, set_id, name)
 );
 
 
