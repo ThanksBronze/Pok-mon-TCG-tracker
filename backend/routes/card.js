@@ -45,7 +45,7 @@ router.post('/',
 	}
 );
 
-// PUT api/cards
+// PUT api/cards/:id
 router.post(
 	body('name').optional().isString(),
 	body('set_id').optional().isInt(),
@@ -70,4 +70,19 @@ router.post(
 			);
 		} catch (err) {next(err);}
 	}
-)
+);
+
+// DELETE /api/cards/:id (soft delete)
+router.delete('/:id', async(req, res, next) => {
+	try{
+		await pool.query(
+			'UPDATE cards' +
+			'SET deleted_at = now()' +
+			'WHERE id = $1 AND user_id = $2',
+			[req.params.id, req.user.id]
+		);
+		res.status(204).send();
+	} catch (err) {next(err);}
+});
+
+module.exports = router;
