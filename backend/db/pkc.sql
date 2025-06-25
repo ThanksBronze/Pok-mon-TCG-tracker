@@ -123,6 +123,13 @@ CREATE INDEX IF NOT EXISTS idx_cards_set ON cards(set_id);
 CREATE INDEX IF NOT EXISTS idx_cards_type ON cards(type_id);
 CREATE INDEX IF NOT EXISTS idx_card_categories_category ON card_categories(category_id);
 
+ALTER TABLE cards
+	DROP CONSTRAINT IF EXISTS uq_cards_user_set_name;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_cards_user_set_name_active
+	ON cards(user_id, set_id, name)
+	WHERE deleted_at IS NULL;
+
+
 /* INSERTED DATA*/
 
 INSERT INTO series (name) VALUES ('Original Series');
