@@ -1,9 +1,9 @@
-import { defineConfig } from "eslint/config";
-import js from "@eslint/js";
-import globals from "globals";
-import pluginReact from "eslint-plugin-react";
+const { defineConfig } = require("eslint/config");
+const js = require("@eslint/js");
+const globals = require("globals");
+const pluginReact = require("eslint-plugin-react");
 
-export default defineConfig([
+module.exports = defineConfig([
   { ignores: ["coverage/**"] },
   // 1) Base JS + CommonJS config
   {
@@ -20,13 +20,10 @@ export default defineConfig([
       // your base rules
     },
   },
-
-  // 2) All React files
+  // 2) React files
   {
     files: ["**/*.{js,jsx}"],
-    plugins: {
-      react: pluginReact,
-    },
+    plugins: { react: pluginReact },
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
@@ -36,7 +33,6 @@ export default defineConfig([
       },
     },
     rules: {
-      // spread in all of the recommended React rules
       ...pluginReact.configs.flat.recommended.rules,
     },
     settings: {
