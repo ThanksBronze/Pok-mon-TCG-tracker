@@ -97,10 +97,14 @@ CREATE TABLE IF NOT EXISTS notes (
 );
 
 DO $$
+DECLARE
+	tbl text;
 BEGIN
-	FOR tbl IN ARRAY[
-		'users','roles','user_roles','series','card_types','sets','cards','categories','card_categories','notes'
-	] LOOP
+	FOR tbl IN SELECT unnest(
+		ARRAY[
+			'users','roles','user_roles','series','card_types','sets','cards','categories','card_categories','notes'
+		]
+	) LOOP
 		EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I;', tbl);
 		EXECUTE format(
 			'CREATE TRIGGER set_timestamp
@@ -111,7 +115,7 @@ BEGIN
 		);
 	END LOOP;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 
 CREATE INDEX IF NOT EXISTS idx_cards_user ON cards(user_id);
@@ -522,3 +526,24 @@ VALUES (14, 8.5, NULL, NULL, 'Scarlet & Violet—Prismatic Evolutions', 'Special
 
 INSERT INTO sets (series_id, set_no, symbol, logo, name_of_expansion, type_of_expansion, no_of_cards, release_date, set_abb, notes)
 VALUES (14, 9, NULL, NULL, 'Scarlet & Violet—Journey Together', 'Main Series Expansion', 159, '2025-03-28', 'JTG', 'Includes 21+ secret cards');
+
+
+
+INSERT INTO card_types (name, category) VALUES
+  ('full_art',      'Full-art'),
+  ('alt_art',       'Alternate Art'),
+  ('secret_rare',   'Secret Rare'),
+  ('holo_rare',     'Holo Rare'),
+  ('ultra_rare',    'Ultra Rare'),
+  ('ex',            'EX'),
+  ('gx',            'GX'),
+  ('v',             'V'),
+  ('vmax',          'VMAX'),
+  ('vstar',         'VSTAR'),
+  ('special_illu',  'Special Illustration'),
+  ('illustration',  'Illustration')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO users (username, email)
+  VALUES ('testuser', 'test@example.com')
+RETURNING id;
