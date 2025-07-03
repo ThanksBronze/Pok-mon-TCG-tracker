@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-const api = axios.create({
-	baseURL: '/api',
-});
+import api from './index.js';
 
 export const fetchCards = () => api.get('/cards');
 export const fetchCard  = id => api.get(`/cards/${id}`);

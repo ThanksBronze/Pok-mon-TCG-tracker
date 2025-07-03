@@ -1,4 +1,3 @@
-// src/components/CardList.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import {
 	fetchCards as apiFetchCards,
@@ -6,6 +5,10 @@ import {
 	updateCard as apiUpdateCard,
 	deleteCard as apiDeleteCard,
 } from '../api/cards';
+import { fetchSets } from '../api/sets';
+import { fetchCardTypes } from '../api/cardTypes';
+import { fetchSeries } from '../api/series';
+import { fetchUsers } from '../api/users';
 
 export default function CardList() {
 	const [cards, setCards] = useState([]);
@@ -33,32 +36,28 @@ export default function CardList() {
 	}, []);
 
 	useEffect(() => {
-		fetch('/api/series')
-			.then(res => res.json())
-			.then(data => setSeriesList(data))
-			.catch(err => console.error('Fetch series error:', err));
-	}, []);
-
-	useEffect(() => {
-		fetch('/api/sets')
-			.then(r => r.json())
-			.then(data => setSets(data))
-			.catch(err => console.error('Fetch sets error:', err));
-	}, []);
-
-		useEffect(() => {
-			fetch('/api/card-types')
-				.then(r => r.json())
-				.then(data => setTypes(data))
-				.catch(err => console.error('Fetch types error:', err));
+			fetchSeries()
+				.then(res => setSeriesList(res.data))
+				.catch(err => console.error('Fetch series error:', err));
 		}, []);
 
 		useEffect(() => {
-			fetch('/api/users')
-				.then(r => r.json())
-				.then(data => setUsers(data))
-				.catch(err => console.error('Fetch users error:', err));
-		}, []);
+				fetchSets()
+					.then(res => setSets(res.data))
+					.catch(err => console.error('Fetch sets error:', err));
+			}, []);
+
+			useEffect(() => {
+					fetchCardTypes()
+						.then(res => setTypes(res.data))
+						.catch(err => console.error('Fetch types error:', err));
+				}, []);
+
+				useEffect(() => {
+						fetchUsers()
+							.then(res => setUsers(res.data))
+							.catch(err => console.error('Fetch users error:', err));
+					}, []);
 
 	// Live filter
 	const filteredCards = useMemo(() => {
