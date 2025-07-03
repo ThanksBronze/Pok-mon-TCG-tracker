@@ -12,6 +12,11 @@ export default function CardList() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [editingCardId, setEditingCardId] = useState(null);
 	const [editedCard, setEditedCard] = useState({});
+	const [seriesList, setSeriesList] = useState([]);
+	const [sets, setSets] = useState([]);
+	const [types, setTypes] = useState([]);
+	const [selectedSeries, setSelectedSeries] = useState('');
+	const [users, setUsers] = useState([]);
 
 	// form state for new card
 	const [name, setName] = useState('');
@@ -26,6 +31,34 @@ export default function CardList() {
 			.then(res => setCards(res.data))
 			.catch(err => console.error('Fetch cards error:', err));
 	}, []);
+
+	useEffect(() => {
+		fetch('/api/series')
+			.then(res => res.json())
+			.then(data => setSeriesList(data))
+			.catch(err => console.error('Fetch series error:', err));
+	}, []);
+
+	useEffect(() => {
+		fetch('/api/sets')
+			.then(r => r.json())
+			.then(data => setSets(data))
+			.catch(err => console.error('Fetch sets error:', err));
+	}, []);
+
+		useEffect(() => {
+			fetch('/api/card-types')
+				.then(r => r.json())
+				.then(data => setTypes(data))
+				.catch(err => console.error('Fetch types error:', err));
+		}, []);
+
+		useEffect(() => {
+			fetch('/api/users')
+				.then(r => r.json())
+				.then(data => setUsers(data))
+				.catch(err => console.error('Fetch users error:', err));
+		}, []);
 
 	// Live filter
 	const filteredCards = useMemo(() => {
@@ -50,7 +83,16 @@ export default function CardList() {
 			user_id: parseInt(userId, 10),
 		})
 			.then(res => {
-				setCards(cards.concat(res.data));
+					const userName = users.find(u => u.id === res.data.user_id)?.username || '';
+					const seriesName = seriesList.find(ser => ser.id === res.data.series_id)?.name || '';
+					const newCard = {
+						...res.data,
+						type_name: types.find(t => t.id === res.data.type_id )?.name || '',
+						set_name: sets.find(s => s.id === res.data.set_id )?.name_of_expansion || '',
+						series_name: seriesName,
+						user_name: userName,
+					};
+				setCards([...cards, newCard]);
 				setName(''); setTypeId(''); setSetId(''); setNoInSet(''); setUserId('');
 			})
 			.catch(err => console.error('Add error:', err));
@@ -83,8 +125,8 @@ export default function CardList() {
 	// Delete
 	const deleteCard = id => {
 		apiDeleteCard(id)
-			.then(res => {
-				setCards(cards.filter(c => c.id !== res.data.id));
+			.then(() => {
+				setCards(prev => prev.filter(c => c.id !== id));
 			})
 			.catch(err => console.error('Delete error:', err));
 	};
@@ -94,10 +136,52 @@ export default function CardList() {
 			<h2>Add a Card</h2>
 			<form onSubmit={handleAdd} className="add-form">
 				<input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} required />
-				<input type="number" placeholder="Type ID" value={typeId} onChange={e => setTypeId(e.target.value)} required />
-				<input type="number" placeholder="Set ID" value={setId} onChange={e => setSetId(e.target.value)} required />
+				<select
+					value={selectedSeries}
+					onChange={e => {
+						setSelectedSeries(e.target.value);
+						setSetId('');
+					}}
+					required
+				>
+					<option value="" disabled>— choose series —</option>
+					{seriesList.map(ser => (
+						<option key={ser.id} value={ser.id}>
+							{ser.name}
+						</option>
+					))}
+				</select>
+				<select value={typeId} onChange={e => setTypeId(e.target.value)} required>
+					<option value="" disabled>— Choose Type —</option>
+					{types.map(t => (
+						<option key={t.id} value={t.id}>
+							{t.name}
+						</option>
+					))}
+				</select>
+				<select value={setId} onChange={e => setSetId(e.target.value)} required disabled={!selectedSeries}> 
+					<option value="" disabled>— Choose Set —</option>
+						{sets
+							.filter(s => s.series_id === parseInt(selectedSeries, 10))
+							.map(set => (
+						<option key={set.id} value={set.id}>
+							{set.name_of_expansion}
+						</option>
+						))}
+				</select>
 				<input type="number" placeholder="No. in Set (opt)" value={noInSet} onChange={e => setNoInSet(e.target.value)} />
-				<input type="number" placeholder="User ID" value={userId} onChange={e => setUserId(e.target.value)} required />
+				<select
+					value={userId}
+					onChange={e => setUserId(e.target.value)}
+					required
+				>
+					<option value="" disabled>— Choose user —</option>
+					{users.map(u => (
+						<option key={u.id} value={u.id}>
+							{u.username}
+						</option>
+					))}
+				</select>
 				<button type="submit">Add</button>
 			</form>
 
@@ -122,11 +206,18 @@ export default function CardList() {
 										value={editedCard.name}
 										onChange={e => setEditedCard(ec => ({ ...ec, name: e.target.value }))}
 									/>
-									<input
-										type="number"
-										value={editedCard.type_id}
-										onChange={e => setEditedCard(ec => ({ ...ec, type_id: parseInt(e.target.value,10) }))}
-									/>
+									<select
+									value={editedCard.type_id}
+									onChange={e => setEditedCard(ec => ({ ...ec, type_id: parseInt(e.target.value,10) }))}
+									required
+								>
+									<option value="" disabled>— Choose Type —</option>
+									{types.map(t => (
+										<option key={t.id} value={t.id}>
+											{t.name}
+										</option>
+									))}
+								</select>
 									<input
 										type="number"
 										value={editedCard.set_id}
@@ -150,10 +241,11 @@ export default function CardList() {
 							) : (
 								<>
 									<h3>{card.name}</h3>
-									<p>Type ID: {card.type_id}</p>
-									<p>Set ID: {card.set_id}</p>
+									<p>Serie: {card.series_name}</p>
+									<p>Set: {card.set_name}</p>
+									<p>Type: {card.type_name}</p>
 									<p>No. in Set: {card.no_in_set ?? '—'}</p>
-									<p>User ID: {card.user_id}</p>
+									<p>User: {card.user_name}</p>
 									<div className="card-actions">
 										<button onClick={() => startEdit(card)}>Edit</button>
 										<button onClick={() => deleteCard(card.id)}>Delete</button>
