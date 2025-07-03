@@ -4,26 +4,58 @@ const pool = require('../db');
 const router = express.Router();
 
 // GET /api/cards
-router.get('/', async(req, res, next) => {
-	try{
-		const{rows} = await pool.query(
-			'SELECT * FROM cards WHERE user_id = $1 AND (deleted_at IS NULL)',
+router.get('/', async (req, res, next) => {
+	try {
+		const { rows } = await pool.query(
+			`SELECT
+				c.*,
+				ser.name AS series_name,
+				s.name_of_expansion AS set_name,
+				t.name AS type_name,
+				u.username AS user_name
+			FROM cards AS c
+			JOIN sets AS s ON s.id = c.set_id
+			JOIN series AS ser ON ser.id = s.series_id
+			JOIN card_types AS t ON t.id = c.type_id
+			JOIN users AS u ON u.id = c.user_id
+			WHERE c.user_id = $1
+				AND c.deleted_at IS NULL
+			ORDER BY c.created_at DESC`,
 			[req.user.id]
 		);
 		res.json(rows);
-	} catch (err) { next(err); }
+	} catch (err) {
+		next(err);
+	}
 });
 
 // GET /api/cards/:id
-router.get('/:id', async(req, res, next) => {
-	try{
-		const {rows} = await pool.query(
-			'SELECT * FROM cards WHERE id=$1 AND user_id=$2 AND (deleted_at IS NULL)',
+router.get('/:id', async (req, res, next) => {
+	try {
+		const { rows } = await pool.query(
+			`SELECT
+				c.*,
+				ser.name AS series_name,
+				s.name_of_expansion AS set_name,
+				t.name AS type_name,
+				u.username AS user_name
+			FROM cards AS c
+			JOIN sets AS s ON s.id = c.set_id
+			JOIN series AS ser ON ser.id = s.series_id
+			JOIN card_types AS t ON t.id = c.type_id
+			JOIN users AS u ON u.id = c.user_id
+			WHERE c.id = $1
+				AND c.user_id = $2
+				AND c.deleted_at IS NULL`,
 			[req.params.id, req.user.id]
 		);
-		if(!rows.length) return res.status(404).json({message: 'Kortet finns inte'});
+		if (!rows.length) {
+			return res.status(404).json({ message: 'Kortet finns inte' });
+		}
 		res.json(rows[0]);
-	} catch(err) {next(err);}
+	} catch (err) {
+		next(err);
+	}
 });
 
 // POST /api/cards
