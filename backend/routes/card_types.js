@@ -10,7 +10,8 @@ router.get('/', async (req, res, next) => {
 			`SELECT id, name, category
 				FROM card_types
 			WHERE deleted_at IS NULL
-			ORDER BY name`
+			ORDER BY name`,
+			[]
 		);
 		res.json(rows);
 	} catch (err) {
@@ -50,10 +51,10 @@ router.post(
 		const { name, category = null } = req.body;
 		try {
 			const { rows } = await pool.query(
-	`INSERT INTO card_types (name, category)
+		`INSERT INTO card_types (name, category)
 	 VALUES ($1, $2)
 	 RETURNING id, name, category`,
-	[name, category]
+			[name, category]
 			);
 			res.status(201).json(rows[0]);
 		} catch (err) {
@@ -76,16 +77,16 @@ router.put(
 		try {
 			const { rows } = await pool.query(
 	`UPDATE card_types
-			SET name = COALESCE($1, name),
-		category = COALESCE($2, category),
-		updated_at = NOW()
-		WHERE id = $3
-			AND deleted_at IS NULL
-		RETURNING id, name, category`,
-	[name, category, req.params.id]
+		SET name = COALESCE($1, name),
+	category = COALESCE($2, category),
+	updated_at = NOW()
+	WHERE id = $3
+		AND deleted_at IS NULL
+	RETURNING id, name, category`,
+			[name, category, req.params.id]
 			);
 			if (!rows.length) {
-	return res.status(404).json({ message: 'Typen hittades inte' });
+				return res.status(404).json({ message: 'Typen hittades inte' });
 			}
 			res.json(rows[0]);
 		} catch (err) {
@@ -99,7 +100,7 @@ router.delete('/:id', async (req, res, next) => {
 	try {
 		await pool.query(
 			`UPDATE card_types
-		SET deleted_at = NOW()
+	SET deleted_at = NOW()
 	WHERE id = $1`,
 			[req.params.id]
 		);
