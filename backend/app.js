@@ -1,10 +1,12 @@
+require('dotenv').config();
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const authRouter  = require('./routes/auth');
+const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const setsRouter = require('./routes/sets');
 const cardTypesRouter = require('./routes/card_types');
@@ -39,5 +41,8 @@ app.use('/api/series', seriesRouter);
 
 console.log('Mounting usersRouter on /api/users');
 app.use('/api/users', usersRouter);
+
+console.log('Mounting authRouter on /api/auth');
+app.use('/api/auth', authRouter);
 
 module.exports = app;
