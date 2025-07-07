@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const pool = require('../db');
 const router = express.Router();
-const saltRounds = 10;
+const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
 
 // GET /api/users
 router.get('/', async (req, res, next) => {
@@ -38,33 +38,6 @@ router.get('/:id', async (req, res, next) => {
 		next(err);
 	}
 });
-
-// POST /api/users
-router.post(
-	'/',
-	body('username').isString().notEmpty(),
-	body('email').isEmail().optional({ nullable: true }),
-	body('password').isString().notEmpty(),
-	async (req, res, next) => {
-		const errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			return res.status(400).json({ errors: errors.array() });
-		}
-		const { username, password, email = null } = req.body;
-		try {
-			const hash = await bcrypt.hash(password, saltRounds);
-			const { rows } = await pool.query(
-				`INSERT INTO users (username, email, password_hash)
-				VALUES ($1, $2, $3)
-				RETURNING id, username, email, created_at, updated_at`,
-				[username, email]
-			);
-			res.status(201).json(rows[0]);
-		} catch (err) {
-			next(err);
-		}
-	}
-);
 
 // PUT /api/users/:id
 router.put(
