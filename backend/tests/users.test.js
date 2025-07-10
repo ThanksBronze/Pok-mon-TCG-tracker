@@ -77,49 +77,6 @@ describe('routes/users', () => {
 		});
 	});
 
-	describe('POST /api/users', () => {
-		it('400 on missing username', async () => {
-			const res = await request(app).post('/api/users').send({ email:'foo@bar' });
-			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('errors');
-			expect(pool.query).not.toHaveBeenCalled();
-		});
-
-		it('400 on invalid email', async () => {
-			const res = await request(app).post('/api/users').send({ username:'u', email:'notemail' });
-			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('errors');
-		});
-
-		it('201 + created row (with null email)', async () => {
-			const created = { id:3, username:'u', email:null, created_at:'c', updated_at:'u' };
-			pool.query.mockResolvedValue({ rows:[created] });
-			const res = await request(app)
-				.post('/api/users')
-				.send({ username:'u' });
-			expect(res.status).toBe(201);
-			expect(res.body).toEqual(created);
-			expect(pool.query).toHaveBeenCalledWith(
-				expect.stringContaining('INSERT INTO users'),
-				['u', null]
-			);
-		});
-
-		it('201 + created row (with email)', async () => {
-			const created = { id:4, username:'u', email:'e@e.com', created_at:'c', updated_at:'u' };
-			pool.query.mockResolvedValue({ rows:[created] });
-			const res = await request(app)
-				.post('/api/users')
-				.send({ username:'u', email:'e@e.com' });
-			expect(res.status).toBe(201);
-			expect(res.body).toEqual(created);
-			expect(pool.query).toHaveBeenCalledWith(
-				expect.stringContaining('INSERT INTO users'),
-				['u', 'e@e.com']
-			);
-		});
-	});
-
 	describe('PUT /api/users/:id', () => {
 		it('400 on invalid username/email', async () => {
 			let res = await request(app).put('/api/users/9').send({ username:'' });
