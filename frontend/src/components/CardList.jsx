@@ -8,7 +8,6 @@ import {
 import { fetchSets } from '../api/sets';
 import { fetchCardTypes } from '../api/cardTypes';
 import { fetchSeries } from '../api/series';
-import { fetchUsers } from '../api/users';
 
 export default function CardList() {
 	const [cards, setCards] = useState([]);
@@ -19,14 +18,12 @@ export default function CardList() {
 	const [sets, setSets] = useState([]);
 	const [types, setTypes] = useState([]);
 	const [selectedSeries, setSelectedSeries] = useState('');
-	const [users, setUsers] = useState([]);
 
 	// form state for new card
 	const [name, setName] = useState('');
 	const [typeId, setTypeId] = useState('');
 	const [setId, setSetId] = useState('');
 	const [noInSet, setNoInSet] = useState('');
-	const [userId, setUserId] = useState('');
 
 	// Fetch all cards once on mount
 	useEffect(() => {
@@ -53,12 +50,6 @@ export default function CardList() {
 						.catch(err => console.error('Fetch types error:', err));
 				}, []);
 
-				useEffect(() => {
-						fetchUsers()
-							.then(res => setUsers(res.data))
-							.catch(err => console.error('Fetch users error:', err));
-					}, []);
-
 	// Live filter
 	const filteredCards = useMemo(() => {
 		const q = searchQuery.toLowerCase();
@@ -66,8 +57,7 @@ export default function CardList() {
 			c.name.toLowerCase().includes(q) ||
 			String(c.type_id).includes(q) ||
 			String(c.set_id).includes(q) ||
-			String(c.no_in_set ?? '').includes(q) ||
-			String(c.user_id).includes(q)
+			String(c.no_in_set ?? '').includes(q)
 		);
 	}, [cards, searchQuery]);
 
@@ -76,26 +66,32 @@ export default function CardList() {
 		e.preventDefault();
 		apiCreateCard({
 			name,
-			type_id: parseInt(typeId, 10),
-			set_id: parseInt(setId, 10),
-			no_in_set: noInSet ? parseInt(noInSet, 10) : null,
-			user_id: parseInt(userId, 10),
+			type_id: +typeId,
+			set_id:  +setId,
+			no_in_set: noInSet ? +noInSet : null
 		})
-			.then(res => {
-					const userName = users.find(u => u.id === res.data.user_id)?.username || '';
-					const seriesName = seriesList.find(ser => ser.id === res.data.series_id)?.name || '';
-					const newCard = {
-						...res.data,
-						type_name: types.find(t => t.id === res.data.type_id )?.name || '',
-						set_name: sets.find(s => s.id === res.data.set_id )?.name_of_expansion || '',
-						series_name: seriesName,
-						user_name: userName,
-					};
-				setCards([...cards, newCard]);
-				setName(''); setTypeId(''); setSetId(''); setNoInSet(''); setUserId('');
-			})
-			.catch(err => console.error('Add error:', err));
-	};
+		.then(({ data }) => {
+			const setObj = sets.find(s => s.id === data.set_id);
+			const seriesObj = seriesList.find(ser => ser.id === setObj?.series_id);
+			const typeObj = types.find(t => t.id === data.type_id);
+
+			const enriched = {
+				...data,
+				series_name: seriesObj?.name || '–',
+				set_name: setObj?.name_of_expansion || '–',
+				type_name: typeObj?.name || '–',
+				user_name: userObj?.username || '–'
+			};
+
+			setCards(cs => [ enriched, ...cs ]);
+
+			setName('');
+			setTypeId('');
+			setSetId('');
+			setNoInSet('');
+		})
+		.catch(err => console.error('Add error:', err));
+};
 
 	// Edit
 	const startEdit = c => {
@@ -169,18 +165,6 @@ export default function CardList() {
 						))}
 				</select>
 				<input type="number" placeholder="No. in Set (opt)" value={noInSet} onChange={e => setNoInSet(e.target.value)} />
-				<select
-					value={userId}
-					onChange={e => setUserId(e.target.value)}
-					required
-				>
-					<option value="" disabled>— Choose user —</option>
-					{users.map(u => (
-						<option key={u.id} value={u.id}>
-							{u.username}
-						</option>
-					))}
-				</select>
 				<button type="submit">Add</button>
 			</form>
 
@@ -226,11 +210,6 @@ export default function CardList() {
 										type="number"
 										value={editedCard.no_in_set ?? ''}
 										onChange={e => setEditedCard(ec => ({ ...ec, no_in_set: e.target.value ? parseInt(e.target.value,10) : null }))}
-									/>
-									<input
-										type="number"
-										value={editedCard.user_id}
-										onChange={e => setEditedCard(ec => ({ ...ec, user_id: parseInt(e.target.value,10) }))}
 									/>
 									<div className="card-actions">
 										<button onClick={() => saveEdit(card.id)}>Save</button>

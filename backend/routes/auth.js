@@ -56,7 +56,7 @@ router.post(
 			);
 			const user = rows[0];
 			if (!user || !await bcrypt.compare(password, user.password_hash)) {
-				return res.status(401).json({ message: 'Felaktiga inloggningsuppgifter' });
+				return res.status(401).json({ message: 'Wrong credentials' });
 			}
 			const token = jwt.sign(
 				{ sub: user.id, username: user.username },
