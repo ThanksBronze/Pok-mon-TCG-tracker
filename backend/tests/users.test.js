@@ -61,7 +61,7 @@ describe('routes/users', () => {
 			pool.query.mockResolvedValue({ rows: [] });
 			const res = await request(app).get('/api/users/42');
 			expect(res.status).toBe(404);
-			expect(res.body).toEqual({ message: 'Användaren hittades inte' });
+			expect(res.body).toEqual({ message: 'User could not be found' });
 			expect(pool.query).toHaveBeenCalledWith(
 				expect.stringContaining('WHERE id = $1'),
 				['42']
@@ -92,7 +92,7 @@ describe('routes/users', () => {
 				.put('/api/users/9')
 				.send({ username:'new' });
 			expect(res.status).toBe(404);
-			expect(res.body).toEqual({ message: 'Användaren hittades inte' });
+			expect(res.body).toEqual({ message: 'User could not be found' });
 			expect(pool.query).toHaveBeenCalledWith(
 				expect.stringContaining('UPDATE users'),
 				['new', undefined, '9']
