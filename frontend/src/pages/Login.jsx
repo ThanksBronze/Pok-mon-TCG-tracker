@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
-  const [identifier, setIdentifier] = useState(''); // username eller email
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ export default function Login() {
           />
         </label>
         {error && <p className="error">{error}</p>}
-        <button type="submit">Logga in</button>
+        <button type="submit">Login</button>
       </form>
       <p>
         New user? <Link to="/register">Register here</Link>

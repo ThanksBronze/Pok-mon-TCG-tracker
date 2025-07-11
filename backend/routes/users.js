@@ -31,7 +31,7 @@ router.get('/:id', async (req, res, next) => {
 			[req.params.id]
 		);
 		if (!rows.length) {
-			return res.status(404).json({ message: 'Användaren hittades inte' });
+			return res.status(404).json({ message: 'User could not be found' });
 		}
 		res.json(rows[0]);
 	} catch (err) {
@@ -62,7 +62,7 @@ router.put(
 				[username, email, req.params.id]
 			);
 			if (!rows.length) {
-				return res.status(404).json({ message: 'Användaren hittades inte' });
+				return res.status(404).json({ message: 'User could not be found' });
 			}
 			res.json(rows[0]);
 		} catch (err) {
