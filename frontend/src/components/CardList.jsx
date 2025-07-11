@@ -80,7 +80,6 @@ export default function CardList() {
 				series_name: seriesObj?.name || '–',
 				set_name: setObj?.name_of_expansion || '–',
 				type_name: typeObj?.name || '–',
-				user_name: userObj?.username || '–'
 			};
 
 			setCards(cs => [ enriched, ...cs ]);
