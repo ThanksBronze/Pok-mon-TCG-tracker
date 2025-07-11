@@ -84,7 +84,6 @@ describe('<CardList />', () => {
 		fireEvent.change(selects[2], { target: { value: '100' } });  // Set A
 
 		fireEvent.change(screen.getByPlaceholderText('No. in Set (opt)'), { target: { value: '3' } });
-		fireEvent.change(selects[3], { target: { value: '1000' } }); // Alice
 
 		fireEvent.click(screen.getByRole('button', { name: /^Add$/i }));
 
@@ -94,7 +93,6 @@ describe('<CardList />', () => {
 				type_id: 10,
 				set_id: 100,
 				no_in_set: 3,
-				user_id: 1000,
 			});
 		});
 
