@@ -558,3 +558,5 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO users (username, email)
  VALUES ('testuser', 'test@example.com')
 RETURNING id;
+
+INSERT INTO roles (name) VALUES ('user'), ('admin');
