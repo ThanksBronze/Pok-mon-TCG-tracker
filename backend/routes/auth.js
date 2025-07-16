@@ -22,10 +22,18 @@ router.post(
 			const hash = await bcrypt.hash(password, saltRounds);
 			const { rows } = await pool.query(
 				`INSERT INTO users (username, email, password_hash)
-				 VALUES ($1, $2, $3)
-				 RETURNING id, username, email`,
+				VALUES ($1, $2, $3)
+				RETURNING id, username, email`,
 				[username, email, hash]
 			);
+
+			await pool.query(
+				`INSERT INTO user_roles (user_id, role_id)
+				VALUES ($1,
+					(SELECT id FROM roles WHERE name = 'user')
+				`,
+				[newUser.id]
+						);
 			res.status(201).json(rows[0]);
 		} catch (err) {
 			next(err);
