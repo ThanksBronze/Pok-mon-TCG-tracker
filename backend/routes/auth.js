@@ -20,7 +20,7 @@ router.post(
 		try {
 			const { username, email = null, password } = req.body;
 			const hash = await bcrypt.hash(password, saltRounds);
-			const { rows } = await pool.query(
+			const { rows: [newUser] } = await pool.query(
 				`INSERT INTO users (username, email, password_hash)
 				VALUES ($1, $2, $3)
 				RETURNING id, username, email`,
@@ -33,7 +33,7 @@ router.post(
 					(SELECT id FROM roles WHERE name = 'user')
 				`,
 				[newUser.id]
-						);
+			);
 			res.status(201).json(rows[0]);
 		} catch (err) {
 			next(err);
@@ -66,8 +66,18 @@ router.post(
 			if (!user || !await bcrypt.compare(password, user.password_hash)) {
 				return res.status(401).json({ message: 'Wrong credentials' });
 			}
+
+			const { rows: userRoles } = await pool.query(
+				`SELECT r.name 
+				 FROM roles r
+				 JOIN user_roles ur ON ur.role_id = r.id
+				 WHERE ur.user_id = $1`,
+				[user.id]
+			);
+			
+			const roles = userRoles.map(r => r.name);
 			const token = jwt.sign(
-				{ sub: user.id, username: user.username },
+				{ sub: user.id, username: user.username, roles },
 				process.env.JWT_SECRET,
 				{ expiresIn: '7d' }
 			);
