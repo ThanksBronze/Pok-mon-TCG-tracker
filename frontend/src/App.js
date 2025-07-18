@@ -6,7 +6,9 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import NewCard from './pages/NewCard.jsx';
 import EditCard from './pages/EditCard.jsx';
+import SeriesPage from './pages/SeriesPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
 
 export default function App() {
 	return (
@@ -30,7 +32,11 @@ export default function App() {
 						<EditCard />
 					</ProtectedRoute>
 					} />
-				{/* ev. 404 */}
+				<Route path="/series" element={
+					<AdminRoute>
+						<SeriesPage />
+					</AdminRoute>
+					} />
 			</Routes>
 		</BrowserRouter>
 	);
