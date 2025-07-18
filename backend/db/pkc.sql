@@ -555,8 +555,22 @@ INSERT INTO card_types (name, category) VALUES
  ('illustration', 'Illustration')
 ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO users (username, email)
- VALUES ('testuser', 'test@example.com')
-RETURNING id;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-INSERT INTO roles (name) VALUES ('user'), ('admin');
+INSERT INTO roles (name) VALUES ('user')  ON CONFLICT (name) DO NOTHING;
+INSERT INTO roles (name) VALUES ('admin') ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO users (username, email, password_hash)
+VALUES (
+  'admin',
+  'admin@example.com',
+  crypt('test123', gen_salt('bf', 12))
+)
+ON CONFLICT (username) DO NOTHING;
+
+INSERT INTO user_roles (user_id, role_id)
+VALUES (
+  (SELECT id FROM users WHERE username = 'admin'),
+  (SELECT id FROM roles WHERE name = 'admin')
+)
+ON CONFLICT DO NOTHING;
