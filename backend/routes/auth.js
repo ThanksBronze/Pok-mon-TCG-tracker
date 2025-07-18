@@ -19,10 +19,8 @@ router.post(
 
 		try {
 			const { username, email = null, password } = req.body;
-			// hash the password
 			const hash = await bcrypt.hash(password, saltRounds);
 
-			// create the user
 			const { rows: [newUser] } = await pool.query(
 				`INSERT INTO users (username, email, password_hash)
 				 VALUES ($1, $2, $3)
@@ -30,7 +28,6 @@ router.post(
 				[username, email, hash]
 			);
 
-			// assign them the "user" role
 			await pool.query(
 				`INSERT INTO user_roles (user_id, role_id)
 				 VALUES ($1,
