@@ -19,27 +19,33 @@ router.post(
 
 		try {
 			const { username, email = null, password } = req.body;
+			// hash the password
 			const hash = await bcrypt.hash(password, saltRounds);
+
+			// create the user
 			const { rows: [newUser] } = await pool.query(
 				`INSERT INTO users (username, email, password_hash)
-				VALUES ($1, $2, $3)
-				RETURNING id, username, email`,
+				 VALUES ($1, $2, $3)
+				 RETURNING id, username, email`,
 				[username, email, hash]
 			);
 
+			// assign them the "user" role
 			await pool.query(
 				`INSERT INTO user_roles (user_id, role_id)
-				VALUES ($1,
-					(SELECT id FROM roles WHERE name = 'user')
-				`,
+				 VALUES ($1,
+					 (SELECT id FROM roles WHERE name = 'user')
+				 )`,
 				[newUser.id]
 			);
-			res.status(201).json(rows[0]);
+
+			res.status(201).json(newUser);
 		} catch (err) {
 			next(err);
 		}
 	}
 );
+
 
 // POST /api/auth/login
 router.post(
@@ -74,7 +80,7 @@ router.post(
 				 WHERE ur.user_id = $1`,
 				[user.id]
 			);
-			
+
 			const roles = userRoles.map(r => r.name);
 			const token = jwt.sign(
 				{ sub: user.id, username: user.username, roles },
