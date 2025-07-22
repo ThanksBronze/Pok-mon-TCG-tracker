@@ -7,6 +7,8 @@ import Register from './pages/Register.jsx';
 import NewCard from './pages/NewCard.jsx';
 import EditCard from './pages/EditCard.jsx';
 import SeriesPage from './pages/SeriesPage.jsx';
+import SetPage from './pages/SetPage.jsx';
+import TypesPage from './pages/TypesPage.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
 
@@ -35,6 +37,16 @@ export default function App() {
 				<Route path="/series" element={
 					<AdminRoute>
 						<SeriesPage />
+					</AdminRoute>
+					} />
+				<Route path="/sets" element={
+					<AdminRoute>
+						<SetPage />
+					</AdminRoute>
+					} />
+				<Route path="/types" element={
+					<AdminRoute>
+						<TypesPage />
 					</AdminRoute>
 					} />
 			</Routes>
