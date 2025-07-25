@@ -5,7 +5,6 @@ import SeriesForm from './SeriesForm';
 export default function SeriesList() {
 	const [series, setSeries] = useState([]);
 	const [editingId, setEditingId] = useState(null);
-	const [showForm, setShowForm] = useState(false);
 			
 	useEffect(() => {
 		load();
@@ -15,11 +14,6 @@ export default function SeriesList() {
 		fetchSeries()
 			.then(res => setSeries(res.data))
 			.catch(console.error);
-	};
-			
-	const handleAddSuccess = newSeries => {
-		setSeries([newSeries, ...series]);
-		setShowForm(false);
 	};
 			
 	const handleUpdateSuccess = updated => {
@@ -37,31 +31,25 @@ export default function SeriesList() {
 	return (
 		<div className="series-list">
 			<h2>Series</h2>
-			{!showForm && editingId === null && (
-				<button onClick={() => setShowForm(true)}>Add New Series</button>
-			)}
-			{showForm && (
-				<SeriesForm onSuccess={handleAddSuccess} />
-			)}
 			<ul>
 				{series.map(s => (
-		<li key={s.id} className="series-item">
-			{editingId === s.id ? (
-				<SeriesForm
-					initialName={s}
-					onSuccess={handleUpdateSuccess}
-					onCancel={() => setEditingId(null)}
-				/>
-			) : (
-				<>
-					<span>{s.name}</span>
-					<div className="actions">
-			<button onClick={() => setEditingId(s.id)}>Edit</button>
-			<button onClick={() => handleDelete(s.id)}>Delete</button>
-					</div>
-				</>
-			)}
-		</li>
+					<li key={s.id} className="series-item">
+						{editingId === s.id ? (
+							<SeriesForm
+								initialName={s}
+								onSuccess={handleUpdateSuccess}
+								onCancel={() => setEditingId(null)}
+							/>
+						) : (
+							<>
+								<span>{s.name}</span>
+								<div className="actions">
+						<button onClick={() => setEditingId(s.id)}>Edit</button>
+						<button onClick={() => handleDelete(s.id)}>Delete</button>
+								</div>
+							</>
+						)}
+					</li>
 				))}
 			</ul>
 		</div>

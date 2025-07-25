@@ -52,15 +52,13 @@ export default function CardForm({ onSuccess }) {
 	const handleSubmit = async e => {
 		e.preventDefault();
 	
-		// 1) Hitta set‐objektet för att bygga API‐id (t.ex. "base1-4")
 		const setObj    = sets.find(s => s.id === +setId);
 		const cardApiId = setObj?.set_abb && noInSet
 			? `${setObj.set_abb}-${noInSet}`
 			: null;
 	
-		// 2) Förbered variabler för fälten både från form & TCG‐API
 		let finalName   = name;
-		let finalTypeId = typeId;            // fallback till manuellt val
+		let finalTypeId = typeId;
 		let image_small = null;
 		let image_large = null;
 		let rarity      = null;
@@ -73,8 +71,7 @@ export default function CardForm({ onSuccess }) {
 			try {
 				const r       = await api.get(`/tcg/cards/${cardApiId}`);
 				const tcgCard = r.data.data;
-	
-				// namn, bilder, rarity, pris:
+
 				finalName   = tcgCard.name;
 				image_small = tcgCard.images.small;
 				image_large = tcgCard.images.large;
@@ -87,7 +84,6 @@ export default function CardForm({ onSuccess }) {
 					price_market = p.market;
 				}
 	
-				// **Subtype‐fallback**: om användaren inte valt typ, försök hitta en matchning
 				if (!finalTypeId && Array.isArray(tcgCard.subtypes)) {
 					const match = types.find(t => tcgCard.subtypes.includes(t.name));
 					if (match) {
@@ -96,11 +92,9 @@ export default function CardForm({ onSuccess }) {
 				}
 			} catch (err) {
 				if (err.response?.status !== 404) console.error('TCG lookup error:', err);
-				// 404 = inte hittad → lämna finalName (och finalTypeId) oförändrade
 			}
 		}
 	
-		// 3) Bygg payload med både användar‐ och API‐fält
 		const payload = {
 			name:         finalName,
 			type_id:      +finalTypeId,
@@ -115,7 +109,6 @@ export default function CardForm({ onSuccess }) {
 			price_market
 		};
 	
-		// 4) Skicka mot din backend
 		try {
 			let res;
 			if (isEdit) {
