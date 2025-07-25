@@ -48,21 +48,21 @@ describe('<CardList />', () => {
 	test('open modal when card is clicked', () => {
 		render(<CardList cards={cards} />);
 		fireEvent.click(screen.getByText('Charizard'));
-	 const overlay = screen.getByTestId('modal-overlay');
-	 expect(overlay).toBeInTheDocument();
+	const overlay = screen.getByTestId('modal-overlay');
+	expect(overlay).toBeInTheDocument();
 
-	 const modal = within(overlay);
+	const modal = within(overlay);
 
-	 expect(modal.getByRole('heading', { level: 2 })).toHaveTextContent('Charizard');
+	expect(modal.getByRole('heading', { level: 2 })).toHaveTextContent('Charizard');
 
-	 const largeImg = modal.getByRole('img', { name: /Charizard/ });
-	 expect(largeImg).toHaveAttribute('src', cards[1].image_large);
+	const largeImg = modal.getByRole('img', { name: /Charizard/ });
+	expect(largeImg).toHaveAttribute('src', cards[1].image_large);
 
-	 expect(modal.getByText('Series: XY')).toBeInTheDocument();
-	 expect(modal.getByText('Set: XY Promo')).toBeInTheDocument();
-	 expect(modal.getByText('Type: Fire')).toBeInTheDocument();
+	expect(modal.getByText('Series: XY')).toBeInTheDocument();
+	expect(modal.getByText('Set: XY Promo')).toBeInTheDocument();
+	expect(modal.getByText('Type: Fire')).toBeInTheDocument();
 
-	 expect(modal.getByText('Market Price: $56.78')).toBeInTheDocument();
+	expect(modal.getByText('Market Price: $56.78')).toBeInTheDocument();
 	});
 
 	test('close modal when close button is pressed or outside box', () => {
