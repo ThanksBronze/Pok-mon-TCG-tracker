@@ -4,16 +4,14 @@ import './CardModal.css';
 
 export default function CardModal({ card, onClose }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} data-testid="modal-overlay">
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>×</button>
 
-        {/* Header */}
         <div className="modal-header">
           <h2 className="modal-title">{card.name}</h2>
         </div>
 
-        {/* Bild */}
         <div className="modal-image-container">
           <img
             className="modal-image"
@@ -21,14 +19,13 @@ export default function CardModal({ card, onClose }) {
             alt={card.name}
           />
         </div>
-{/* Detaljer under bilden */}
-<div className="modal-details">
-          <p><strong>Series:</strong> {card.series_name}</p>
-          <p><strong>Set:</strong> {card.set_name}</p>
-          <p><strong>Type:</strong> {card.type_name}</p>
-          <p><strong>Rarity:</strong> {card.rarity}</p>
+        <div className="modal-details">
+          <p>Series: {card.series_name}</p>
+          <p>Set: {card.set_name}</p>
+          <p>Type: {card.type_name}</p>
+          <p>Rarity: {card.rarity}</p>
           {card.price_market != null && (
-            <p><strong>Market price:</strong> ${card.price_market}</p>
+            <p>Market Price: ${card.price_market}</p>
           )}
         </div>
       </div>
