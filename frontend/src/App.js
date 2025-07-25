@@ -9,12 +9,15 @@ import EditCard from './pages/EditCard.jsx';
 import SeriesPage from './pages/SeriesPage.jsx';
 import SetPage from './pages/SetPage.jsx';
 import TypesPage from './pages/TypesPage.jsx'
+import ManageUserPage from './pages/ManageUserPage.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
+import Menu from './components/Menu.jsx';
 
 export default function App() {
 	return (
 		<BrowserRouter>
+			<Menu />
 			<Routes>
 				<Route path="/login" element={<Login />} />
 				<Route path="/register" element={<Register />} />
@@ -47,6 +50,11 @@ export default function App() {
 				<Route path="/types" element={
 					<AdminRoute>
 						<TypesPage />
+					</AdminRoute>
+					} />
+				<Route path="/users" element={
+					<AdminRoute>
+						<ManageUserPage />
 					</AdminRoute>
 					} />
 			</Routes>
