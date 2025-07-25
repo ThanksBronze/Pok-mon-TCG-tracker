@@ -59,59 +59,111 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/cards
-router.post('/',
-	body('name').isString().notEmpty(),
-	body('set_id').isInt(),
-	body('type_id').isInt(),
-	body('no_in_set').optional().isInt({min: 0}),
-	async(req, res, next) => {
-		const errors = validationResult (req);
-		if(!errors.isEmpty()) return res.status(400).json({errors: errors.array()});
-		const{name, set_id, type_id, no_in_set = 1} = req.body;
-		try{
-			const{rows} = await pool.query(
-				'INSERT INTO cards(name, set_id, type_id, no_in_set, user_id) VALUES($1,$2,$3,$4,$5) RETURNING *',
-				[name, set_id, type_id, no_in_set, req.user.id]
+router.post(
+	'/',
+	[
+		body('name').isString().notEmpty(),
+		body('set_id').isInt(),
+		body('type_id').isInt(),
+		body('no_in_set').optional().isInt({ min: 1 }),
+		body('image_small').optional().isURL(),
+		body('image_large').optional().isURL(),
+		body('rarity').optional().isString(),
+		body('price_low').optional().isFloat({ min: 0 }),
+		body('price_mid').optional().isFloat({ min: 0 }),
+		body('price_high').optional().isFloat({ min: 0 }),
+		body('price_market').optional().isFloat({ min: 0 }),
+	],
+	async (req, res, next) => {
+		const errs = validationResult(req);
+		if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
+
+		const {
+			name, set_id, type_id, no_in_set,
+			image_small, image_large, rarity,
+			price_low, price_mid, price_high, price_market
+		} = req.body;
+
+		try {
+			const { rows } = await pool.query(
+				`INSERT INTO cards
+					 (name, set_id, type_id, no_in_set, user_id,
+						image_small, image_large, rarity,
+						price_low, price_mid, price_high, price_market)
+				 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+				 RETURNING *`,
+				[
+					name, set_id, type_id, no_in_set, req.user.id,
+					image_small, image_large, rarity,
+					price_low, price_mid, price_high, price_market
+				]
 			);
 			res.status(201).json(rows[0]);
-		}catch (err) {next(err);}
+		} catch (err) {
+			next(err);
+		}
 	}
 );
 
-// PUT api/cards/:id
+// PUT /api/cards/:id
 router.put(
 	'/:id',
-	body('name').optional().isString(),
-	body('set_id').optional().isInt(),
-	body('type_id').optional().isInt(),
-	body('no_in_set').optional().isInt({ min: 0 }),
+	[
+		body('name').optional().isString(),
+		body('set_id').optional().isInt(),
+		body('type_id').optional().isInt(),
+		body('no_in_set').optional().isInt({ min: 1 }),
+		body('image_small').optional().isURL(),
+		body('image_large').optional().isURL(),
+		body('rarity').optional().isString(),
+		body('price_low').optional().isFloat({ min: 0 }),
+		body('price_mid').optional().isFloat({ min: 0 }),
+		body('price_high').optional().isFloat({ min: 0 }),
+		body('price_market').optional().isFloat({ min: 0 }),
+	],
 	async (req, res, next) => {
-		const errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			return res.status(400).json({ errors: errors.array() });
-		}
-		const { name, set_id, type_id, no_in_set } = req.body;
+		const errs = validationResult(req);
+		if (!errs.isEmpty()) return res.status(400).json({ errors: errs.array() });
+
+		const {
+			name, set_id, type_id, no_in_set,
+			image_small, image_large, rarity,
+			price_low, price_mid, price_high, price_market
+		} = req.body;
+
 		try {
 			const { rows } = await pool.query(
-				`UPDATE cards
-					SET name = COALESCE($1, name),
-						set_id = COALESCE($2, set_id),
-						type_id = COALESCE($3, type_id),
-						no_in_set = COALESCE($4, no_in_set),
-						updated_at = NOW()
-				WHERE id = $5
-					AND user_id = $6
-					AND deleted_at IS NULL
-				RETURNING *`,
-				[name, set_id, type_id, no_in_set, req.params.id, req.user.id]
+				`UPDATE cards SET
+					 name         = COALESCE($1, name),
+					 set_id       = COALESCE($2, set_id),
+					 type_id      = COALESCE($3, type_id),
+					 no_in_set    = COALESCE($4, no_in_set),
+					 image_small  = COALESCE($5, image_small),
+					 image_large  = COALESCE($6, image_large),
+					 rarity       = COALESCE($7, rarity),
+					 price_low    = COALESCE($8, price_low),
+					 price_mid    = COALESCE($9, price_mid),
+					 price_high   = COALESCE($10, price_high),
+					 price_market = COALESCE($11, price_market),
+					 updated_at   = NOW()
+				 WHERE id = $12
+					 AND user_id = $13
+					 AND deleted_at IS NULL
+				 RETURNING *`,
+				[
+					name, set_id, type_id, no_in_set,
+					image_small, image_large, rarity,
+					price_low, price_mid, price_high, price_market,
+					req.params.id, req.user.id
+				]
 			);
-		if (rows.length === 0) {
-			return res.status(404).json({ message: 'Kortet finns inte' });
+			if (!rows.length) {
+				return res.status(404).json({ message: 'Kortet finns inte' });
+			}
+			res.json(rows[0]);
+		} catch (err) {
+			next(err);
 		}
-		res.json(rows[0]);
-	} catch (err) {
-		next(err);
-	}
 	}
 );
 
