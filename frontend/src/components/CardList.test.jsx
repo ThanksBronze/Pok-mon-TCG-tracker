@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import CardList from '../components/CardList';
-import CardModal from '../components/CardModal';
 
 describe('<CardList />', () => {
 	const cards = [
