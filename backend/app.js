@@ -12,6 +12,7 @@ const setsRouter = require('./routes/sets');
 const cardTypesRouter = require('./routes/card_types');
 const seriesRouter = require('./routes/series');
 const auth = require('./middleware/jwt');
+const tcgRouter = require('./routes/tcg');
 
 var app = express();
 app.use(express.json());
@@ -46,5 +47,8 @@ app.use('/api/users', auth, usersRouter);
 
 console.log('Mounting authRouter on /api/auth');
 app.use('/api/auth', authRouter);
+
+console.log('Mounting tcgRouter on /api/tcg');
+app.use('/api/tcg', auth, tcgRouter);
 
 module.exports = app;
