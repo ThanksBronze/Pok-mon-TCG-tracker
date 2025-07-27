@@ -56,6 +56,7 @@ export default function CardList({ cards }) {
 			<div className="card-grid">
 				{filtered.map(card => (
 					<div
+						data-testid="card-item"
 						key={card.id}
 						className="card-item"
 						onClick={() => setSelectedCard(card)}
