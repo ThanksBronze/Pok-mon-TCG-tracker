@@ -53,35 +53,35 @@ export default function CardForm({ onSuccess }) {
 	const handleSubmit = async e => {
 		e.preventDefault();
 	
-		const setObj    = sets.find(s => s.id === +setId);
+		const setObj = sets.find(s => s.id === +setId);
 		const cardApiId = setObj?.set_abb && noInSet
 			? `${setObj.set_abb}-${noInSet}`
 			: null;
 	
-		let finalName   = name;
+		let finalName = name;
 		let finalTypeId = typeId;
 		let image_small = null;
 		let image_large = null;
-		let rarity      = null;
-		let price_low   = null;
-		let price_mid   = null;
-		let price_high  = null;
+		let rarity = null;
+		let price_low = null;
+		let price_mid = null;
+		let price_high = null;
 		let price_market= null;
 	
 		if (cardApiId) {
 			try {
-				const r       = await api.get(`/tcg/cards/${cardApiId}`);
+				const r = await api.get(`/tcg/cards/${cardApiId}`);
 				const tcgCard = r.data.data;
 
-				finalName   = tcgCard.name;
+				finalName = tcgCard.name;
 				image_small = tcgCard.images.small;
 				image_large = tcgCard.images.large;
-				rarity      = tcgCard.rarity;
+				rarity = tcgCard.rarity;
 				if (tcgCard.tcgplayer?.prices?.holofoil) {
-					const p     = tcgCard.tcgplayer.prices.holofoil;
-					price_low    = p.low;
-					price_mid    = p.mid;
-					price_high   = p.high;
+					const p = tcgCard.tcgplayer.prices.holofoil;
+					price_low = p.low;
+					price_mid = p.mid;
+					price_high = p.high;
 					price_market = p.market;
 				}
 	
@@ -97,10 +97,10 @@ export default function CardForm({ onSuccess }) {
 		}
 	
 		const payload = {
-			name:         finalName,
-			type_id:      +finalTypeId,
-			set_id:       +setId,
-			no_in_set:    noInSet ? +noInSet : null,
+			name: finalName,
+			type_id: +finalTypeId,
+			set_id: +setId,
+			no_in_set: noInSet ? +noInSet : null,
 			image_small,
 			image_large,
 			rarity,

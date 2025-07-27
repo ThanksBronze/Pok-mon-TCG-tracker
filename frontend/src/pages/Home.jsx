@@ -5,26 +5,26 @@ import CardForm from '../components/CardForm';
 import CardList from '../components/CardList';
 
 export default function Home() {
-  const [cards, setCards] = useState([]);
+	const [cards, setCards] = useState([]);
 
-  useEffect(() => {
-    apiFetchCards()
-      .then(r => setCards(r.data))
-      .catch(console.error);
-  }, []);
+	useEffect(() => {
+		apiFetchCards()
+			.then(r => setCards(r.data))
+			.catch(console.error);
+	}, []);
 
-  const handleNewCard = newCard => {
-    setCards(cs => [newCard, ...cs]);
-  };
+	const handleNewCard = newCard => {
+		setCards(cs => [newCard, ...cs]);
+	};
 
-  const handleRemoveCard = id => {
-    setCards(cs => cs.filter(c => c.id !== id));
-  };
+	const handleRemoveCard = id => {
+		setCards(cs => cs.filter(c => c.id !== id));
+	};
 
-  return (
-    <div className="manage-cards">
-      <CardForm onSuccess={handleNewCard} />
-      <CardList cards={cards} onDelete={handleRemoveCard} />
-    </div>
-  );
+	return (
+		<div className="manage-cards">
+			<CardForm onSuccess={handleNewCard} />
+			<CardList cards={cards} onDelete={handleRemoveCard} />
+		</div>
+	);
 }

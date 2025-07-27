@@ -6,7 +6,6 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
-/* Enkolumns‑layout på små skärmar */
 @media (max-width: 600px) {
   .card-form {
     grid-template-columns: 1fr;
@@ -14,7 +13,6 @@
   }
 }
 
-/* Varje fält */
 .card-form label {
   display: flex;
   flex-direction: column;
@@ -29,10 +27,9 @@
   font-size: 1rem;
 }
 
-/* Submit‑knappen spänner över alla kolumner på desktop */
 .card-form button {
   grid-column: span 2;
-  justify-self: end;    /* högst till höger */
+  justify-self: end;
   padding: 0.5rem 1rem;
   background: #007bff;
   color: #fff;
