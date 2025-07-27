@@ -10,6 +10,7 @@ import { fetchCardTypes as apiFetchTypes } from '../api/cardTypes';
 import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import './CardForm.css'
 
 export default function CardForm({ onSuccess }) {
 	const { id } = useParams();
