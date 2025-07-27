@@ -70,3 +70,37 @@
     font-size: 0.9rem;
   }
 }
+
+.modal-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-edit,
+.modal-delete {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.modal-edit {
+  background: #28a745;
+  color: white;
+}
+
+.modal-edit:hover {
+  background: #218838;
+}
+
+.modal-delete {
+  background: #dc3545;
+  color: white;
+}
+
+.modal-delete:hover {
+  background: #c82333;
+}
