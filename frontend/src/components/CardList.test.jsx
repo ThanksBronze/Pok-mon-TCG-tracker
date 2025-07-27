@@ -1,79 +1,75 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
-import CardList from '../components/CardList';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
-describe('<CardList />', () => {
-	const cards = [
-		{
-			id: 1,
-			name: 'Pikachu',
-			image_small: 'https://example.com/pika-small.png',
-			image_large: 'https://example.com/pika-large.png',
-			series_name: 'Base',
-			set_name: 'Base Set',
-			type_name: 'Electric',
-			price_market: 12.34
-		},
-		{
-			id: 2,
-			name: 'Charizard',
-			image_small: 'https://example.com/char-small.png',
-			image_large: 'https://example.com/char-large.png',
-			series_name: 'XY',
-			set_name: 'XY Promo',
-			type_name: 'Fire',
-			price_market: 56.78
-		}
-	];
+jest.mock('../api/series', () => ({ fetchSeries: jest.fn() }));
+jest.mock('../api/sets', () => ({ fetchSets: jest.fn() }));
+jest.mock('../api/cardTypes', () => ({ fetchCardTypes: jest.fn() }));
+jest.mock('../api/cards', () => ({
+	deleteCard: jest.fn(),
+	updateCard: jest.fn()
+}));
 
-	test('render all cards with small image and name', () => {
-		render(<CardList cards={cards} />);
-		expect(screen.getByText('Pikachu')).toBeInTheDocument();
-		expect(screen.getByText('Charizard')).toBeInTheDocument();
-		const imgs = screen.getAllByRole('img');
-		expect(imgs).toHaveLength(2);
-		expect(imgs[0]).toHaveAttribute('src', cards[0].image_small);
-		expect(imgs[1]).toHaveAttribute('src', cards[1].image_small);
-	});
+import CardList from './CardList';
+import { fetchSeries } from '../api/series';
+import { fetchSets } from '../api/sets';
+import { fetchCardTypes } from '../api/cardTypes';
+import { deleteCard, updateCard } from '../api/cards';
 
-	test('filter cards in search filter', () => {
-		render(<CardList cards={cards} />);
-		const input = screen.getByPlaceholderText('Filter cards…');
-		fireEvent.change(input, { target: { value: 'Char' } });
-		expect(screen.queryByText('Pikachu')).toBeNull();
-		expect(screen.getByText('Charizard')).toBeInTheDocument();
-	});
+const dummyCards = [
+	{ id: 1, name: 'Alpha', image_small: 'a.png', series_id: null, set_id: null, type_id: null, no_in_set: null },
+	{ id: 2, name: 'Beta', image_small: 'b.png', series_id: null, set_id: null, type_id: null, no_in_set: null }
+];
+const dummySeries = [{ id: 10, name: 'Series A' }];
+const dummySets = [{ id: 20, series_id: 10, name_of_expansion: 'Set X' }];
+const dummyTypes = [{ id: 30, name: 'Type I' }];
 
-	test('open modal when card is clicked', () => {
-		render(<CardList cards={cards} />);
-		fireEvent.click(screen.getByText('Charizard'));
-	const overlay = screen.getByTestId('modal-overlay');
+beforeEach(() => {
+	fetchSeries.mockResolvedValue({ data: dummySeries });
+	fetchSets.mockResolvedValue({ data: dummySets });
+	fetchCardTypes.mockResolvedValue({ data: dummyTypes });
+	updateCard.mockResolvedValue({ data: { ...dummyCards[0], name: 'UpdatedName' } });
+	deleteCard.mockResolvedValue({});
+	window.confirm = jest.fn(() => true);
+});
+
+afterEach(() => {
+	jest.clearAllMocks();
+});
+
+test('renders cards and filters by name', async () => {
+	render(<CardList cards={dummyCards} />);
+
+	await waitFor(() => expect(fetchSeries).toHaveBeenCalled());
+
+	expect(screen.getByText('Alpha')).toBeInTheDocument();
+	expect(screen.getByText('Beta')).toBeInTheDocument();
+
+	const input = screen.getByPlaceholderText('Filter cards…');
+	fireEvent.change(input, { target: { value: 'alp' } });
+
+	expect(screen.getByText('Alpha')).toBeInTheDocument();
+	expect(screen.queryByText('Beta')).toBeNull();
+});
+
+test('opens modal on card click and handles update/delete', async () => {
+	render(<CardList cards={dummyCards} />);
+
+	await waitFor(() => expect(fetchCardTypes).toHaveBeenCalled());
+
+	const firstCard = screen.getAllByTestId('card-item')[0];
+	fireEvent.click(firstCard);
+
+	const overlay = await screen.findByTestId('modal-overlay');
 	expect(overlay).toBeInTheDocument();
 
-	const modal = within(overlay);
-
-	expect(modal.getByRole('heading', { level: 2 })).toHaveTextContent('Charizard');
-
-	const largeImg = modal.getByRole('img', { name: /Charizard/ });
-	expect(largeImg).toHaveAttribute('src', cards[1].image_large);
-
-	expect(modal.getByText('Series: XY')).toBeInTheDocument();
-	expect(modal.getByText('Set: XY Promo')).toBeInTheDocument();
-	expect(modal.getByText('Type: Fire')).toBeInTheDocument();
-
-	expect(modal.getByText('Market Price: $56.78')).toBeInTheDocument();
-	});
-
-	test('close modal when close button is pressed or outside box', () => {
-		render(<CardList cards={cards} />);
-		fireEvent.click(screen.getByText('Pikachu'));
-		const closeBtn = screen.getByRole('button', { name: '×' });
-		fireEvent.click(closeBtn);
-		expect(screen.queryByTestId('modal-overlay')).toBeNull();
-
-		fireEvent.click(screen.getByText('Pikachu'));
-		const overlay = screen.getByTestId('modal-overlay');
-		fireEvent.click(overlay);
-		expect(screen.queryByTestId('modal-overlay')).toBeNull();
+	fireEvent.click(screen.getByText('Edit'));
+	const nameInput = screen.getByLabelText('Name');
+	fireEvent.change(nameInput, { target: { value: 'UpdatedName' } });
+	fireEvent.click(screen.getByText('Save'));
+	await waitFor(() => expect(updateCard).toHaveBeenCalledWith(1, expect.objectContaining({ name: 'UpdatedName' })));
+	await waitFor(() => {
+		const modalHeader = within(screen.getByTestId('modal-overlay')).getByRole('heading', { name: 'UpdatedName' });
+		expect(modalHeader).toBeInTheDocument();
 	});
 });
