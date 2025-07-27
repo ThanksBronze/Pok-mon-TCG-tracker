@@ -3,8 +3,6 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
-import axios from 'axios';        // just to get the Jest mock registered
-import mockAxios from 'axios';    // TS: same thing, bring in the mock
 import * as seriesAPI from './api/series';
 import * as setsAPI   from './api/sets';
 import * as typesAPI  from './api/cardTypes';
