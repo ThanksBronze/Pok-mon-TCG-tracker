@@ -180,4 +180,30 @@ router.delete('/:id', async(req, res, next) => {
 	} catch (err) {next(err);}
 });
 
+// SEARCH /api/cards/search
+app.get('/api/cards/search', async (req, res) => {
+	const { q, series, set, type, rarity } = req.query;
+
+	const filters = [];
+	if (series) filters.push(`series_id = ${parseInt(series)}`);
+	if (set) filters.push(`set_id = ${parseInt(set)}`);
+	if (type) filters.push(`type_id = ${parseInt(type)}`);
+	if (rarity) filters.push(`rarity = '${rarity}'`);
+
+	const tsQuery = q
+		? `document_with_weights @@ plainto_tsquery('swedish', '${q.replace("'", "''")}')`
+		: 'TRUE';
+
+	const whereClause = [tsQuery, ...filters].join(' AND ');
+
+	const cards = await db.query(`
+		SELECT * FROM cards
+		WHERE ${whereClause}
+		ORDER BY ts_rank(document_with_weights, plainto_tsquery('swedish', '${q || ''}')) DESC
+		LIMIT 100
+	`);
+
+	res.json(cards.rows);
+});
+
 module.exports = router;

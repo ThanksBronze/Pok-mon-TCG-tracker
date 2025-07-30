@@ -82,6 +82,34 @@ CREATE TABLE IF NOT EXISTS cards (
 	CONSTRAINT uq_cards_user_set_name UNIQUE (user_id, set_id, name)
 );
 
+ALTER TABLE cards
+	ADD COLUMN IF NOT EXISTS document_with_weights tsvector;
+
+UPDATE cards
+SET document_with_weights =
+		setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
+		setweight(to_tsvector('english', coalesce(rarity, '')), 'B') ||
+		setweight(to_tsvector('english', coalesce(notes, '')), 'C');
+
+		CREATE INDEX IF NOT EXISTS idx_cards_fts
+	ON cards USING GIN(document_with_weights);
+
+CREATE OR REPLACE FUNCTION trigger_update_document_with_weights()
+	RETURNS TRIGGER AS $$
+BEGIN
+	NEW.document_with_weights :=
+		setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
+		setweight(to_tsvector('english', coalesce(NEW.rarity, '')), 'B') ||
+		setweight(to_tsvector('english', coalesce(NEW.notes, '')), 'C');
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER IF NOT EXISTS update_cards_document_weights
+	BEFORE INSERT OR UPDATE ON cards
+	FOR EACH ROW
+	EXECUTE FUNCTION trigger_update_document_with_weights();
+
 CREATE TABLE IF NOT EXISTS categories (
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(100) NOT NULL UNIQUE,
@@ -580,15 +608,15 @@ INSERT INTO roles (name) VALUES ('admin') ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (username, email, password_hash)
 VALUES (
-  'admin',
-  'admin@example.com',
-  crypt('test123', gen_salt('bf', 12))
+	'admin',
+	'admin@example.com',
+	crypt('test123', gen_salt('bf', 12))
 )
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO user_roles (user_id, role_id)
 VALUES (
-  (SELECT id FROM users WHERE username = 'admin'),
-  (SELECT id FROM roles WHERE name = 'admin')
+	(SELECT id FROM users WHERE username = 'admin'),
+	(SELECT id FROM roles WHERE name = 'admin')
 )
 ON CONFLICT DO NOTHING;
