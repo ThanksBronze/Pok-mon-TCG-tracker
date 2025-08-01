@@ -88,10 +88,9 @@ ALTER TABLE cards
 UPDATE cards
 SET document_with_weights =
 		setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
-		setweight(to_tsvector('english', coalesce(rarity, '')), 'B') ||
-		setweight(to_tsvector('english', coalesce(notes, '')), 'C');
+		setweight(to_tsvector('english', coalesce(rarity, '')), 'B');
 
-		CREATE INDEX IF NOT EXISTS idx_cards_fts
+CREATE INDEX IF NOT EXISTS idx_cards_fts
 	ON cards USING GIN(document_with_weights);
 
 CREATE OR REPLACE FUNCTION trigger_update_document_with_weights()
@@ -99,16 +98,25 @@ CREATE OR REPLACE FUNCTION trigger_update_document_with_weights()
 BEGIN
 	NEW.document_with_weights :=
 		setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
-		setweight(to_tsvector('english', coalesce(NEW.rarity, '')), 'B') ||
-		setweight(to_tsvector('english', coalesce(NEW.notes, '')), 'C');
+		setweight(to_tsvector('english', coalesce(NEW.rarity, '')), 'B');
 	RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER IF NOT EXISTS update_cards_document_weights
+DROP TRIGGER IF EXISTS update_cards_document_weights ON cards;
+
+CREATE TRIGGER update_cards_document_weights
 	BEFORE INSERT OR UPDATE ON cards
 	FOR EACH ROW
 	EXECUTE FUNCTION trigger_update_document_with_weights();
+
+UPDATE cards
+SET document_with_weights =
+		setweight(to_tsvector('english', coalesce(name, '')), 'A') ||
+		setweight(to_tsvector('english', coalesce(rarity, '')), 'B');
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_cards_name_trgm ON cards USING GIN (name gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS categories (
 	id SERIAL PRIMARY KEY,

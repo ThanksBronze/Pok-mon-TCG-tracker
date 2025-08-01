@@ -5,3 +5,4 @@ export const fetchCard  = id => api.get(`/cards/${id}`);
 export const createCard = data => api.post('/cards', data);
 export const updateCard = (id, data) => api.put(`/cards/${id}`, data);
 export const deleteCard = id => api.delete(`/cards/${id}`);
+export const searchCards = (params, config = {}) => api.get('/cards/search', { params, ...config });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { deleteCard as apiDeleteCard, updateCard as apiUpdateCard } from '../api/cards';
 import { fetchSeries } from '../api/series';
@@ -7,12 +7,11 @@ import { fetchCardTypes } from '../api/cardTypes';
 import CardModal from './CardModal';
 import './CardList.css';
 
-export default function CardList({ cards }) {
+export default function CardList({ cards, onDelete }) {
 	const [cardsState, setCardsState] = useState(cards);
 	const [seriesList, setSeriesList] = useState([]);
 	const [sets, setSets] = useState([]);
 	const [types, setTypes] = useState([]);
-	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCard, setSelectedCard] = useState(null);
 
 	useEffect(() => {
@@ -21,14 +20,10 @@ export default function CardList({ cards }) {
 
 	useEffect(() => {
 		fetchSeries().then(r => setSeriesList(r.data));
-		fetchSets() .then(r => setSets(r.data));
+		fetchSets().then(r => setSets(r.data));
 		fetchCardTypes().then(r => setTypes(r.data));
 	}, []);
-
-	const filtered = useMemo(() => {
-		const q = searchQuery.toLowerCase();
-		return cardsState.filter(c => c.name.toLowerCase().includes(q));
-	}, [cardsState, searchQuery]);
+	
 
 	const handleUpdate = async (id, payload) => {
 		const res = await apiUpdateCard(id, payload);
@@ -39,22 +34,17 @@ export default function CardList({ cards }) {
 	const handleDelete = async id => {
 		if (!window.confirm('Are you sure?')) return;
 		await apiDeleteCard(id);
+
 		setCardsState(cs => cs.filter(c => c.id !== id));
 		setSelectedCard(null);
+
+		if (onDelete) onDelete(id);
 	};
 
-	return (
+return (
 		<div className="card-list">
-			<input
-				type="text"
-				className="search-input"
-				placeholder="Filter cards…"
-				value={searchQuery}
-				onChange={e => setSearchQuery(e.target.value)}
-			/>
-
 			<div className="card-grid">
-				{filtered.map(card => (
+				{cardsState.map(card => (
 					<div
 						data-testid="card-item"
 						key={card.id}
@@ -83,5 +73,6 @@ export default function CardList({ cards }) {
 }
 
 CardList.propTypes = {
-	cards: PropTypes.array.isRequired
+	cards: PropTypes.array.isRequired,
+	onDelete: PropTypes.func,
 };

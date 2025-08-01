@@ -29,6 +29,88 @@ router.get('/', async (req, res, next) => {
 	}
 });
 
+router.get('/search', async (req, res, next) => {
+	try {
+		const { q, series, set, type, rarity } = req.query;
+
+		const whereParts = [];
+		const values = [req.user.id]; // $1
+		let idx = 2;
+
+		if (q && q.trim()) {
+			const terms = q
+				.trim()
+				.split(/\s+/)
+				.map(t => t.replace(/[:&|!]/g, ''))
+				.filter(Boolean)
+				.map(t => `${t}:*`);
+			const tsQueryString = terms.join(' & ');
+
+			whereParts.push(`(
+				c.document_with_weights @@ to_tsquery('english', $${idx})
+				OR c.name ILIKE '%' || $${idx + 1} || '%'
+			)`);
+			values.push(tsQueryString);
+			values.push(q.trim());
+			idx += 2;
+		} else {
+			whereParts.push('TRUE');
+		}
+
+		if (series) {
+			whereParts.push(`ser.id = $${idx}`);
+			values.push(parseInt(series, 10));
+			idx++;
+		}
+		if (set) {
+			whereParts.push(`c.set_id = $${idx}`);
+			values.push(parseInt(set, 10));
+			idx++;
+		}
+		if (type) {
+			whereParts.push(`c.type_id = $${idx}`);
+			values.push(parseInt(type, 10));
+			idx++;
+		}
+		if (rarity) {
+			whereParts.push(`c.rarity = $${idx}`);
+			values.push(rarity);
+			idx++;
+		}
+
+		let orderClause;
+		if (q && q.trim()) {
+			orderClause = `ts_rank(c.document_with_weights, to_tsquery('english', $2)) DESC`;
+		} else {
+			orderClause = 'c.created_at DESC';
+		}
+
+		const queryText = `
+			SELECT
+				c.*,
+				ser.name AS series_name,
+				s.name_of_expansion AS set_name,
+				t.name AS type_name,
+				u.username AS user_name
+			FROM cards c
+			JOIN sets s ON s.id = c.set_id
+			JOIN series ser ON ser.id = s.series_id
+			JOIN card_types t ON t.id = c.type_id
+			JOIN users u ON u.id = c.user_id
+			WHERE ${whereParts.join(' AND ')}
+				AND c.user_id = $1
+				AND c.deleted_at IS NULL
+			ORDER BY ${orderClause}
+			LIMIT 100
+		`;
+
+		const { rows } = await pool.query(queryText, values);
+		res.json(rows);
+	} catch (err) {
+		next(err);
+	}
+});
+
 // GET /api/cards/:id
 router.get('/:id', async (req, res, next) => {
 	try {
@@ -180,30 +262,6 @@ router.delete('/:id', async(req, res, next) => {
 	} catch (err) {next(err);}
 });
 
-// SEARCH /api/cards/search
-app.get('/api/cards/search', async (req, res) => {
-	const { q, series, set, type, rarity } = req.query;
 
-	const filters = [];
-	if (series) filters.push(`series_id = ${parseInt(series)}`);
-	if (set) filters.push(`set_id = ${parseInt(set)}`);
-	if (type) filters.push(`type_id = ${parseInt(type)}`);
-	if (rarity) filters.push(`rarity = '${rarity}'`);
-
-	const tsQuery = q
-		? `document_with_weights @@ plainto_tsquery('swedish', '${q.replace("'", "''")}')`
-		: 'TRUE';
-
-	const whereClause = [tsQuery, ...filters].join(' AND ');
-
-	const cards = await db.query(`
-		SELECT * FROM cards
-		WHERE ${whereClause}
-		ORDER BY ts_rank(document_with_weights, plainto_tsquery('swedish', '${q || ''}')) DESC
-		LIMIT 100
-	`);
-
-	res.json(cards.rows);
-});
 
 module.exports = router;
