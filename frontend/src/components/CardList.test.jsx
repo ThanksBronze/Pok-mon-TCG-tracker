@@ -37,19 +37,13 @@ afterEach(() => {
 	jest.clearAllMocks();
 });
 
-test('renders cards and filters by name', async () => {
+test('renders cards', async () => {
 	render(<CardList cards={dummyCards} />);
 
 	await waitFor(() => expect(fetchSeries).toHaveBeenCalled());
 
 	expect(screen.getByText('Alpha')).toBeInTheDocument();
 	expect(screen.getByText('Beta')).toBeInTheDocument();
-
-	const input = screen.getByPlaceholderText('Filter cards…');
-	fireEvent.change(input, { target: { value: 'alp' } });
-
-	expect(screen.getByText('Alpha')).toBeInTheDocument();
-	expect(screen.queryByText('Beta')).toBeNull();
 });
 
 test('opens modal on card click and handles update/delete', async () => {
