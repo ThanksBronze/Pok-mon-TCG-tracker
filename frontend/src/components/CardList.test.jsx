@@ -58,7 +58,7 @@ test('opens modal on card click and handles update/delete', async () => {
 	expect(overlay).toBeInTheDocument();
 
 	fireEvent.click(screen.getByText('Edit'));
-	const nameInput = screen.getByLabelText('Name');
+	const nameInput = screen.getByPlaceholderText(/^Name/);
 	fireEvent.change(nameInput, { target: { value: 'UpdatedName' } });
 	fireEvent.click(screen.getByText('Save'));
 	await waitFor(() => expect(updateCard).toHaveBeenCalledWith(1, expect.objectContaining({ name: 'UpdatedName' })));
