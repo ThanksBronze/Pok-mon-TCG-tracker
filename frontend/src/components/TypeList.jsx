@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCardTypes, deleteCardType } from '../api/cardTypes';
 import TypeForm from './TypeForm';
+import './AdminLists.css';
 
 export default function TypeList() {
 	const [types, setTypes] = useState([]);

@@ -1,97 +1,156 @@
-/* toggle button */
+:root {
+  --bg: #2f1f5b;
+  --panel-bg: #3f2d7f;
+  --radius: 16px;
+  --shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+  --btn-gradient: linear-gradient(90deg,#9e7bff,#8360e0);
+  --text: #f1f1fb;
+  --muted: rgba(255,255,255,0.7);
+  --border: rgba(255,255,255,0.1);
+  font-family: 'Inter', system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
+}
+
 .nav-toggle {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1001;
-  background: #007bff;
-  color: #fff;
+  top: 16px;
+  left: 16px;
+  background: var(--panel-bg);
   border: none;
-  padding: 0.5rem;
-  font-size: 1.25rem;
-  border-radius: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
   cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  transition: transform .2s, filter .2s;
+  z-index: 1001;
+}
+.nav-toggle:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
-/* semi‑transparent overlay */
 .nav-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.4);
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
   z-index: 1000;
+  transition: opacity .3s;
 }
 
-/* drawer panel – default to desktop */
 .nav-drawer {
   position: fixed;
   top: 0;
-  left: -80%;
-  width: 300px;
-  max-width: 80%;
+  left: 0;
+  width: 280px;
+  max-width: 100%;
   height: 100%;
-  background: #fff;
-  transition: left 0.3s ease;
+  background: var(--panel-bg);
+  padding: 1.5rem 1rem 1rem;
+  box-shadow: 0 30px 60px -10px rgba(0,0,0,0.5);
+  transform: translateX(-100%);
+  transition: transform .35s cubic-bezier(.22,.61,.36,1);
   display: flex;
   flex-direction: column;
+  gap: 1rem;
   z-index: 1002;
-}
-
-/* mobile override */
-@media (max-width: 768px) {
-  .nav-drawer {
-    width: 80%;
-  }
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  overflow-y: auto;
 }
 
 .nav-drawer.open {
-  left: 0;
+  transform: translateX(0);
 }
 
-/* content area: links at top, logout at bottom */
+.nav-close {
+  background: transparent;
+  border: none;
+  font-size: 1.75rem;
+  color: var(--muted);
+  align-self: flex-end;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color .2s;
+}
+.nav-close:hover {
+  color: #fff;
+}
+
 .nav-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 1rem;
+  height: 100%;
 }
 
-/* close “×” button */
-.nav-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  align-self: flex-end;
-  margin-bottom: 1rem;
-}
-
-/* nav links */
-.nav-content ul {
+.nav-list {
+  flex: 1;
+  overflow-y: auto;
   list-style: none;
   padding: 0;
   margin: 0;
-}
-.nav-content li + li {
-  margin-top: 0.5rem;
-}
-.nav-content a {
-  text-decoration: none;
-  color: #333;
-  font-size: 1.1rem;
-}
-.nav-content a:hover {
-  color: #007bff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-/* logout button pinned at bottom */
+.nav-list li {
+  margin: 0;
+}
+
+.nav-list a {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  position: relative;
+  transition: background .2s, transform .1s;
+  letter-spacing: 0.5px;
+}
+.nav-list a:hover {
+  background: rgba(255,255,255,0.05);
+  transform: translateY(-1px);
+}
+.nav-list a:active {
+  transform: translateY(1px);
+}
+
 .nav-logout {
-  background: none;
+  position: relative;
+  margin-top: auto;
+  margin-bottom: 3rem;
+  width: calc(100% - 2rem);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 14px 16px;
   border: none;
-  color: #c00;
-  font-size: 1rem;
-  text-align: left;
-  padding: 0.5rem 0;
+  border-radius: 12px;
+  background: var(--btn-gradient);
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
+  box-shadow: 0 12px 30px -4px rgba(154,123,255,0.6);
+  transition: filter .2s, transform .1s;
+}
+
+.nav-logout:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.nav-logout:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 800px) {
+  .nav-drawer {
+    width: clamp(240px, 80vw, 300px);
+    border-radius: 0 16px 16px 0;
+  }
 }

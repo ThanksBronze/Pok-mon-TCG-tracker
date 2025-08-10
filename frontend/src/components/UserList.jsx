@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchUsers, deleteUser } from '../api/users';
 import UserForm from './UserForm';
+import './AdminLists.css';
 
 export default function UserList() {
 	const [users, setUsers]       = useState([]);

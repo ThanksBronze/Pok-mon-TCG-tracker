@@ -1,106 +1,161 @@
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+/* ===== Modal shell (unchanged) ===== */
+.modal-overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);z-index:1200}
+.modal-content{width:auto;max-height:none;background:transparent;box-shadow:none;padding:0 0 12px;gap:12px}
+.modal-close{position:absolute;top:8px;right:10px;border:0;background:transparent;color:var(--muted);font-size:1.8rem;line-height:1;cursor:pointer}
+.modal-close:hover{color:#fff}
+
+/* ===== Card centering ===== */
+.cardlike-wrap{display:grid;place-items:center;padding:8px 12px}
+
+/* Outer card keeps TCG ratio */
+.tcg-card{
+  width:clamp(260px,72vw,360px);
+  aspect-ratio:63/88;
+  position:relative;
+  border-radius:18px;
+  padding:8px;
+  filter:drop-shadow(0 18px 36px rgba(0,0,0,.45));
+}
+.tcg-card::before{
+  content:"";position:absolute;inset:0;padding:6px;border-radius:18px;
+  background:conic-gradient(from 0deg,#f7d57a,#f5b97a,#d39bff,#9e7bff,#7aa7ff,#7ad0ff,#7af5d6,#f7d57a 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
 }
 
-.modal-content {
-  position: relative;
-  background: #fff;
-  border-radius: 8px;
-  width: 90vw;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 1rem;
+/* ===== Inner layout: GRID (this is the fix) ===== */
+.tcg-inner{
+  height:100%;
+  border-radius:14px;
+  background:radial-gradient(120% 100% at 20% 0%,rgba(255,255,255,.06),transparent 60%),var(--panel-bg);
+  border:1px solid var(--border);
+  display:grid;
+  grid-template-rows: auto minmax(0,1fr) auto auto; /* top, ART (fills rest), info, foot */
+  row-gap:8px;
+  padding:8px;
+  min-height:0; /* allow children to shrink inside fixed aspect card */
 }
 
-.modal-close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
+/* Top band */
+.tcg-top{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;
+  padding:6px 8px;border-radius:10px;
+  background:linear-gradient(90deg,var(--accent,#9e7bff),transparent 70%);
+  border:1px solid rgba(255,255,255,.12);
+}
+.tcg-badge{font-size:.72rem;font-weight:700;letter-spacing:.4px;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,.25);color:#fff}
+.tcg-name{margin:0;font-size:1.05rem;letter-spacing:.5px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.tcg-num{font-weight:700;opacity:.85}
+
+/* ART: remove its own aspect-ratio; let it flex inside grid */
+.tcg-art{
+  width:100%;
+  min-height:0;               /* critical with minmax(0,1fr) */
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  display:grid;place-items:center;overflow:hidden;margin:0;
+}
+.tcg-img{width:100%;height:100%;object-fit:contain;object-position:center}
+
+/* Info block */
+.tcg-info{
+  display:grid;gap:6px;padding:8px;border-radius:10px;
+  background:rgba(0,0,0,.18);border:1px solid var(--border);
+  color:var(--text);font-size:.9rem;min-height:0;overflow:auto;
+}
+.tcg-row{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
+.tcg-row b{color:var(--text);font-weight:700}
+
+/* Footer strip */
+.tcg-foot{
+  display:flex;justify-content:space-between;gap:8px;
+  padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);font-size:.78rem;color:var(--muted)
 }
 
-.modal-header {
-  text-align: left;
-  margin-bottom: 1rem;
+/* Buttons same width as card */
+.modal-actions--tight{width:clamp(260px,72vw,360px);margin:8px auto 0;display:flex;justify-content:space-between;gap:.5rem}
+.modal-edit,.modal-save{padding:.75rem 1rem;border:0;border-radius:12px;background:var(--btn-gradient);color:#fff;font-weight:600;letter-spacing:.5px;cursor:pointer;box-shadow:0 12px 28px -6px rgba(154,123,255,.55);transition:transform .1s,filter .2s}
+.modal-edit:hover,.modal-save:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.modal-cancel{padding:.75rem 1rem;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);cursor:pointer}
+.modal-delete{padding:.75rem 1rem;border:0;border-radius:12px;background:linear-gradient(90deg,#ff6b6b,#f03e3e);color:#fff;font-weight:600;cursor:pointer;box-shadow:0 12px 28px -6px rgba(240,62,62,.45)}
+
+.tcg-art { cursor: zoom-in; }
+
+/* Fullskärmsvisare (lightbox) */
+.imglight-overlay{
+  position:fixed; inset:0;
+  display:grid; place-items:center;
+  background:rgba(0,0,0,.8);
+  backdrop-filter:blur(2px);
+  z-index:1300;
+  padding:2rem;
 }
-.modal-title {
-  margin: 0;
-  font-size: 1.5rem;
+.imglight-content{
+  max-width:min(96vw, 960px);
+  max-height:96vh;
+}
+.imglight-img{
+  width:100%; height:100%;
+  object-fit:contain; object-position:center;
+  border-radius:12px; box-shadow:var(--shadow);
+}
+.imglight-close{
+  position:fixed; top:12px; right:16px;
+  border:0; background:transparent;
+  color:#fff; font-size:2rem; line-height:1; cursor:pointer;
+}
+.imglight-close:hover{ filter:brightness(1.1); }
+
+.tcg-input,
+.tcg-select{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: .95rem;
+  outline: none;
+  min-width: 0;
+  transition: border-color .2s, box-shadow .2s;
+}
+.tcg-input:focus,
+.tcg-select:focus{
+  border-color: #b5aaff;
+  box-shadow: 0 0 0 3px rgba(154,123,255,.35);
 }
 
-.modal-image-container {
-  text-align: center;
-}
-.modal-image {
-  max-width: 100%;
-  max-height: 60vh;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-.modal-details {
-  margin-top: 1rem;
-  line-height: 1.4;
+/* Name field fits header center column */
+.tcg-input--name{
+  width: 100%;
+  font-size: 1.05rem;
+  font-weight: 600;
+  background: rgba(0,0,0,.18);
+  border-color: rgba(255,255,255,.18);
 }
 
-.modal-details p {
-  margin: 0.5rem 0;
-  font-size: 1rem;
+/* Number field (right side in header) */
+.tcg-input--num{
+  width: 70px;
+  text-align: right;
+  background: rgba(0,0,0,.18);
+  border-color: rgba(255,255,255,.18);
 }
 
-@media (max-width: 400px) {
-  .modal-content {
-    padding: 0.5rem;
-  }
-  .modal-title {
-    font-size: 1.25rem;
-  }
-  .modal-details p {
-    font-size: 0.9rem;
-  }
+/* In info rows the field takes the right side */
+.tcg-field{
+  width: 62%;
+  display: inline-flex;
 }
+.tcg-row .tcg-select,
+.tcg-row .tcg-input{ width: 100%; }
 
-.modal-actions {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+/* Make lightbox always fit the viewport on large screens too */
+.imglight-overlay{
+  --gutter: max(10px, 2vmin);
+  padding: var(--gutter);
 }
-
-.modal-edit,
-.modal-delete {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.modal-edit {
-  background: #28a745;
-  color: white;
-}
-
-.modal-edit:hover {
-  background: #218838;
-}
-
-.modal-delete {
-  background: #dc3545;
-  color: white;
-}
-
-.modal-delete:hover {
-  background: #c82333;
-}
+.imglight-content{ width:100%; height:100%; display:grid; place-items:center; }
+.imglight-img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; }
+.imglight-close{ top: var(--gutter); right: calc(var(--gutter) + 4px); }

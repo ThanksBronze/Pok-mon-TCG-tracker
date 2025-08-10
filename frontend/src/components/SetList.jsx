@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchSets, deleteSet } from '../api/sets';
 import SetForm from './SetForm';
+import './AdminLists.css';
+
 
 export default function SetList() {
 	const [sets, setSets] = useState([]);

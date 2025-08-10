@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchSeries, deleteSeries } from '../api/series';
 import SeriesForm from './SeriesForm';
+import './AdminLists.css';
+
 
 export default function SeriesList() {
 	const [series, setSeries] = useState([]);
