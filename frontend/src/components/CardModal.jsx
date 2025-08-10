@@ -32,7 +32,6 @@ export default function CardModal({
     });
   }, [card]);
 
-  // aktuell typtext för accentfärgen
   const currentTypeName = useMemo(() => {
     if (isEditing) {
       const t = types.find(x => String(x.id) === form.type_id);
@@ -52,7 +51,6 @@ export default function CardModal({
     currentTypeName === 'Darkness' ? '#6b6b92' :
     '#9e7bff';
 
-  // ESC: först stäng bild, sen modal
   useEffect(() => {
     const onKey = e => {
       if (e.key === 'Escape') {
@@ -92,15 +90,12 @@ export default function CardModal({
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
 
-        {/* ----- KORTLAYOUT (både view & edit) ----- */}
         <div className="cardlike-wrap">
           <div className="tcg-card" style={{ '--accent': accent }}>
             <div className="tcg-inner">
-              {/* TOPP */}
               <header className="tcg-top">
                 <span className="tcg-badge">{currentTypeName || '—'}</span>
 
-                {/* Namn: text eller input inline */}
                 {isEditing ? (
                   <input
                     className="tcg-input tcg-input--name"
@@ -113,7 +108,6 @@ export default function CardModal({
                   <h2 className="tcg-name">{card.name}</h2>
                 )}
 
-                {/* #No in set: text eller litet input */}
                 {isEditing ? (
                   <input
                     className="tcg-input tcg-input--num"
@@ -129,7 +123,6 @@ export default function CardModal({
                 )}
               </header>
 
-              {/* BILD – klickbar för lightbox */}
               <div
                 className="tcg-art"
                 role="button"
@@ -145,7 +138,6 @@ export default function CardModal({
                 )}
               </div>
 
-              {/* INFO – i edit-läge visar vi selects inline */}
               <section className="tcg-info">
                 <div className="tcg-row">
                   <span>Series</span>
@@ -156,7 +148,6 @@ export default function CardModal({
                         name="series_id"
                         value={form.series_id}
                         onChange={e => {
-                          // nollställ set om series ändras
                           const v = e.target.value;
                           setForm(f => ({ ...f, series_id: v, set_id: '' }));
                         }}
@@ -233,7 +224,6 @@ export default function CardModal({
                 )}
               </section>
 
-              {/* FOOT */}
               <footer className="tcg-foot">
                 <span className="tcg-foot-left">{card.series_name || ''}</span>
                 <span className="tcg-foot-right">{card.set_name || ''}</span>
@@ -242,7 +232,6 @@ export default function CardModal({
           </div>
         </div>
 
-        {/* Knappar under kortet */}
         <div className="modal-actions modal-actions--tight">
           {isEditing ? (
             <>
@@ -258,7 +247,6 @@ export default function CardModal({
         </div>
       </div>
 
-      {/* Lightbox för hel bild */}
       {showFull && (
         <div
           className="imglight-overlay"

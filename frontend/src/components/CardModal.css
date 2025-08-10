@@ -1,13 +1,10 @@
-/* ===== Modal shell (unchanged) ===== */
 .modal-overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);z-index:1200}
 .modal-content{width:auto;max-height:none;background:transparent;box-shadow:none;padding:0 0 12px;gap:12px}
 .modal-close{position:absolute;top:8px;right:10px;border:0;background:transparent;color:var(--muted);font-size:1.8rem;line-height:1;cursor:pointer}
 .modal-close:hover{color:#fff}
 
-/* ===== Card centering ===== */
 .cardlike-wrap{display:grid;place-items:center;padding:8px 12px}
 
-/* Outer card keeps TCG ratio */
 .tcg-card{
   width:clamp(260px,72vw,360px);
   aspect-ratio:63/88;
@@ -23,20 +20,18 @@
   -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
 }
 
-/* ===== Inner layout: GRID (this is the fix) ===== */
 .tcg-inner{
   height:100%;
   border-radius:14px;
   background:radial-gradient(120% 100% at 20% 0%,rgba(255,255,255,.06),transparent 60%),var(--panel-bg);
   border:1px solid var(--border);
   display:grid;
-  grid-template-rows: auto minmax(0,1fr) auto auto; /* top, ART (fills rest), info, foot */
+  grid-template-rows: auto minmax(0,1fr) auto auto;
   row-gap:8px;
   padding:8px;
-  min-height:0; /* allow children to shrink inside fixed aspect card */
+  min-height:0;
 }
 
-/* Top band */
 .tcg-top{
   display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;
   padding:6px 8px;border-radius:10px;
@@ -47,10 +42,9 @@
 .tcg-name{margin:0;font-size:1.05rem;letter-spacing:.5px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
 .tcg-num{font-weight:700;opacity:.85}
 
-/* ART: remove its own aspect-ratio; let it flex inside grid */
 .tcg-art{
   width:100%;
-  min-height:0;               /* critical with minmax(0,1fr) */
+  min-height:0;
   border-radius:10px;
   background:rgba(255,255,255,.05);
   border:1px solid var(--border);
@@ -58,7 +52,6 @@
 }
 .tcg-img{width:100%;height:100%;object-fit:contain;object-position:center}
 
-/* Info block */
 .tcg-info{
   display:grid;gap:6px;padding:8px;border-radius:10px;
   background:rgba(0,0,0,.18);border:1px solid var(--border);
@@ -67,14 +60,12 @@
 .tcg-row{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
 .tcg-row b{color:var(--text);font-weight:700}
 
-/* Footer strip */
 .tcg-foot{
   display:flex;justify-content:space-between;gap:8px;
   padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04);
   border:1px solid var(--border);font-size:.78rem;color:var(--muted)
 }
 
-/* Buttons same width as card */
 .modal-actions--tight{width:clamp(260px,72vw,360px);margin:8px auto 0;display:flex;justify-content:space-between;gap:.5rem}
 .modal-edit,.modal-save{padding:.75rem 1rem;border:0;border-radius:12px;background:var(--btn-gradient);color:#fff;font-weight:600;letter-spacing:.5px;cursor:pointer;box-shadow:0 12px 28px -6px rgba(154,123,255,.55);transition:transform .1s,filter .2s}
 .modal-edit:hover,.modal-save:hover{filter:brightness(1.05);transform:translateY(-1px)}
@@ -83,7 +74,6 @@
 
 .tcg-art { cursor: zoom-in; }
 
-/* Fullskärmsvisare (lightbox) */
 .imglight-overlay{
   position:fixed; inset:0;
   display:grid; place-items:center;
@@ -126,7 +116,6 @@
   box-shadow: 0 0 0 3px rgba(154,123,255,.35);
 }
 
-/* Name field fits header center column */
 .tcg-input--name{
   width: 100%;
   font-size: 1.05rem;
@@ -135,7 +124,6 @@
   border-color: rgba(255,255,255,.18);
 }
 
-/* Number field (right side in header) */
 .tcg-input--num{
   width: 70px;
   text-align: right;
@@ -143,7 +131,6 @@
   border-color: rgba(255,255,255,.18);
 }
 
-/* In info rows the field takes the right side */
 .tcg-field{
   width: 62%;
   display: inline-flex;
@@ -151,7 +138,6 @@
 .tcg-row .tcg-select,
 .tcg-row .tcg-input{ width: 100%; }
 
-/* Make lightbox always fit the viewport on large screens too */
 .imglight-overlay{
   --gutter: max(10px, 2vmin);
   padding: var(--gutter);
