@@ -50,65 +50,91 @@ export default function CardForm({ onSuccess }) {
 			.catch(console.error);
 	}, [id, isEdit]);
 
+	function pickPriceVariant(prices) {
+		if (!prices || typeof prices !== 'object') return null;
+		const keysInOrder = [
+			'holofoil',
+			'reverseHolofoil',
+			'reverseholofoil',
+			'normal',
+			'1stEditionHolofoil',
+			'unlimitedHolofoil',
+		];
+		for (const k of keysInOrder) if (prices[k]) return { key: k, data: prices[k] };
+		const first = Object.entries(prices)[0];
+		return first ? { key: first[0], data: first[1] } : null;
+	}
+	
+	function normalizeNumber(n) {
+		const v = Number(n);
+		return Number.isFinite(v) ? v : undefined; // undefined ⇒ fältet utelämnas
+	}
+
 	const handleSubmit = async e => {
 		e.preventDefault();
 	
 		const setObj = sets.find(s => s.id === +setId);
-		const cardApiId = setObj?.set_abb && noInSet
-			? `${setObj.set_abb}-${noInSet}`
-			: null;
+		const cardApiId = setObj?.set_abb && noInSet ? `${setObj.set_abb}-${noInSet}` : null;
 	
 		let finalName = name;
 		let finalTypeId = typeId;
 		let image_small = null;
 		let image_large = null;
 		let rarity = null;
-		let price_low = null;
-		let price_mid = null;
-		let price_high = null;
-		let price_market= null;
+	
+		// ★ deklarera här, så den syns efter if-blocket
+		let pricePatch = {};
 	
 		if (cardApiId) {
 			try {
 				const r = await api.get(`/tcg/cards/${cardApiId}`);
 				const tcgCard = r.data.data;
-
+	
 				finalName = tcgCard.name;
-				image_small = tcgCard.images.small;
-				image_large = tcgCard.images.large;
-				rarity = tcgCard.rarity;
-				if (tcgCard.tcgplayer?.prices?.holofoil) {
-					const p = tcgCard.tcgplayer.prices.holofoil;
-					price_low = p.low;
-					price_mid = p.mid;
-					price_high = p.high;
-					price_market = p.market;
+				image_small = tcgCard.images?.small ?? null;
+				image_large = tcgCard.images?.large ?? null;
+				rarity = tcgCard.rarity ?? null;
+	
+				// Välj första bästa pris-variant
+				const pricesObj = tcgCard.tcgplayer?.prices;
+				const picked = pickPriceVariant(pricesObj);
+				if (picked?.data) {
+					const p = picked.data;
+					pricePatch = {
+						price_low:    normalizeNumber(p.low),
+						price_mid:    normalizeNumber(p.mid),
+						price_high:   normalizeNumber(p.high),
+						price_market: normalizeNumber(p.market),
+						// price_variant: picked.key, // valfritt om du vill spara varianten
+					};
 				}
 	
+				// Fyll typ om inte vald
 				if (!finalTypeId && Array.isArray(tcgCard.subtypes)) {
 					const match = types.find(t => tcgCard.subtypes.includes(t.name));
-					if (match) {
-						finalTypeId = String(match.id);
-					}
+					if (match) finalTypeId = String(match.id);
 				}
 			} catch (err) {
 				if (err.response?.status !== 404) console.error('TCG lookup error:', err);
 			}
 		}
 	
-		const payload = {
+		// Bygg payload – skicka INTE 0 om typ saknas
+		const basePayload = {
 			name: finalName,
-			type_id: +finalTypeId,
-			set_id: +setId,
-			no_in_set: noInSet ? +noInSet : null,
+			set_id: Number(setId), // required i ditt formulär
+			type_id: finalTypeId ? Number(finalTypeId) : null, // eller gör "Card Type" required i UI
+			no_in_set: noInSet ? Number(noInSet) : null,
 			image_small,
 			image_large,
 			rarity,
-			price_low,
-			price_mid,
-			price_high,
-			price_market
 		};
+	
+		const cleanedPricePatch = Object.fromEntries(
+			Object.entries(pricePatch).filter(([, v]) => v !== undefined)
+		);
+	
+		const payload = { ...basePayload, ...cleanedPricePatch };
 	
 		try {
 			let res;
