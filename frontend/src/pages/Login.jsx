@@ -20,6 +20,7 @@ export default function Login() {
 			if (!res.ok) throw new Error('Cant find user');
 			const { token } = await res.json();
 			localStorage.setItem('token', token);
+			window.dispatchEvent(new Event('auth-changed'));
 			navigate('/');
 		} catch (err) {
 			setError(err.message);
