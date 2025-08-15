@@ -20,7 +20,7 @@ export default function Register() {
 			});
 			if (!res.ok) {
 				const data = await res.json();
-				throw new Error(data.errors?.[0]?.msg || 'Något gick fel');
+				throw new Error(data.errors?.[0]?.msg || 'Something went wrong');
 			}
 			navigate('/login');
 		} catch (err) {

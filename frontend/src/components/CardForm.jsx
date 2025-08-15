@@ -35,7 +35,6 @@ export default function CardForm({ onSuccess }) {
 		apiFetchTypes().then(r => setTypes(r.data)).catch(console.error);
 	}, []);
 
-	// if editing existing → load it
 	useEffect(() => {
 		if (!isEdit) return;
 		apiFetchCard(id)
@@ -67,7 +66,7 @@ export default function CardForm({ onSuccess }) {
 	
 	function normalizeNumber(n) {
 		const v = Number(n);
-		return Number.isFinite(v) ? v : undefined; // undefined ⇒ fältet utelämnas
+		return Number.isFinite(v) ? v : undefined;
 	}
 
 	const handleSubmit = async e => {
@@ -82,7 +81,6 @@ export default function CardForm({ onSuccess }) {
 		let image_large = null;
 		let rarity = null;
 	
-		// ★ deklarera här, så den syns efter if-blocket
 		let pricePatch = {};
 	
 		if (cardApiId) {
@@ -95,7 +93,6 @@ export default function CardForm({ onSuccess }) {
 				image_large = tcgCard.images?.large ?? null;
 				rarity = tcgCard.rarity ?? null;
 	
-				// Välj första bästa pris-variant
 				const pricesObj = tcgCard.tcgplayer?.prices;
 				const picked = pickPriceVariant(pricesObj);
 				if (picked?.data) {
@@ -105,11 +102,9 @@ export default function CardForm({ onSuccess }) {
 						price_mid:    normalizeNumber(p.mid),
 						price_high:   normalizeNumber(p.high),
 						price_market: normalizeNumber(p.market),
-						// price_variant: picked.key, // valfritt om du vill spara varianten
 					};
 				}
 	
-				// Fyll typ om inte vald
 				if (!finalTypeId && Array.isArray(tcgCard.subtypes)) {
 					const match = types.find(t => tcgCard.subtypes.includes(t.name));
 					if (match) finalTypeId = String(match.id);
@@ -119,11 +114,10 @@ export default function CardForm({ onSuccess }) {
 			}
 		}
 	
-		// Bygg payload – skicka INTE 0 om typ saknas
 		const basePayload = {
 			name: finalName,
-			set_id: Number(setId), // required i ditt formulär
-			type_id: finalTypeId ? Number(finalTypeId) : null, // eller gör "Card Type" required i UI
+			set_id: Number(setId),
+			type_id: finalTypeId ? Number(finalTypeId) : null,
 			no_in_set: noInSet ? Number(noInSet) : null,
 			image_small,
 			image_large,
