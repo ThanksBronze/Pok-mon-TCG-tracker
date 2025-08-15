@@ -13,6 +13,8 @@ const cardTypesRouter = require('./routes/card_types');
 const seriesRouter = require('./routes/series');
 const auth = require('./middleware/jwt');
 const tcgRouter = require('./routes/tcg');
+const swaggerUi = require('swagger-ui-express');
+const { swaggerSpec } = require('./docs/swagger');
 
 var app = express();
 app.use(express.json());
@@ -50,5 +52,8 @@ app.use('/api/auth', authRouter);
 
 console.log('Mounting tcgRouter on /api/tcg');
 app.use('/api/tcg', auth, tcgRouter);
+
+app.get('/openapi.json', (_req, res) => res.json(swaggerSpec));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 module.exports = app;

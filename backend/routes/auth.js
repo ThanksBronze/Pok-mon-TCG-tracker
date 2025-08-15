@@ -7,7 +7,60 @@ const pool = require('../db');
 const router = express.Router();
 const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
 
-// POST /api/auth/register
+/**
+ * @openapi
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     description: Creates a user account with the default **user** role. Email is optional.
+ *     tags: [Auth]
+ *     security: []   # explicitly no auth required
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [username, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "ash_ketchum"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 nullable: true
+ *                 example: "ash@example.com"
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *                 example: "secret123"
+ *     responses:
+ *       201:
+ *         description: User successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 42
+ *                 username:
+ *                   type: string
+ *                   example: "ash_ketchum"
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                   nullable: true
+ *                   example: "ash@example.com"
+ *       400:
+ *         description: Validation error (invalid or missing fields)
+ *       409:
+ *         description: Username or email already exists (may be returned by the database)
+ *       500:
+ *         description: Server error
+ */
 router.post(
 	'/register',
 	body('username').isString().notEmpty(),
@@ -44,7 +97,53 @@ router.post(
 );
 
 
-// POST /api/auth/login
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Login with username or email and password
+ *     description: Returns a signed JWT that encodes the user id, username and roles. Token expires in 7 days.
+ *     tags: [Auth]
+ *     security: []   # explicitly no auth required
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             oneOf:
+ *               - required: [username, password]
+ *               - required: [email, password]
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "ash_ketchum"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "ash@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "secret123"
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: Bearer token (JWT)
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       400:
+ *         description: Validation error (e.g. missing password)
+ *       401:
+ *         description: Wrong credentials (user not found or bad password)
+ *       500:
+ *         description: Server error
+ */
 router.post(
 	'/login',
 	body('username').optional().isString(),

@@ -3,7 +3,29 @@ const { body, validationResult} = require('express-validator');
 const pool = require('../db');
 const router = express.Router();
 
-// GET /api/cards
+/**
+ * @openapi
+ * /api/cards:
+ *   get:
+ *     summary: List cards for the authenticated user
+ *     description: Returns all non-deleted cards that belong to the current user, enriched with series, set, type and owner names.
+ *     tags: [Cards]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of cards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CardView'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/', async (req, res, next) => {
 	try {
 		const { rows } = await pool.query(
@@ -29,6 +51,55 @@ router.get('/', async (req, res, next) => {
 	}
 });
 
+/**
+ * @openapi
+ * /api/cards/search:
+ *   get:
+ *     summary: Full-text search and filter cards
+ *     description: Performs a weighted full-text search on cards and allows filtering by series, set, type and rarity. Results are limited to the authenticated user's cards.
+ *     tags: [Cards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search terms (space separated). Uses PostgreSQL to_tsquery and ILIKE fallback.
+ *       - in: query
+ *         name: series
+ *         schema:
+ *           type: integer
+ *         description: Series id filter
+ *       - in: query
+ *         name: set
+ *         schema:
+ *           type: integer
+ *         description: Set id filter
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: integer
+ *         description: Card type id filter
+ *       - in: query
+ *         name: rarity
+ *         schema:
+ *           type: string
+ *         description: Exact rarity filter
+ *     responses:
+ *       200:
+ *         description: Filtered list of cards (max 100)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CardView'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/search', async (req, res, next) => {
 	try {
 		const { q, series, set, type, rarity } = req.query;
@@ -111,7 +182,36 @@ router.get('/search', async (req, res, next) => {
 	}
 });
 
-// GET /api/cards/:id
+/**
+ * @openapi
+ * /api/cards/{id}:
+ *   get:
+ *     summary: Get a card by id
+ *     description: Returns a single card (owned by the current user) with joined view fields.
+ *     tags: [Cards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Card id
+ *     responses:
+ *       200:
+ *         description: Card found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CardView'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Card not found
+ *       500:
+ *         description: Server error
+ */
 router.get('/:id', async (req, res, next) => {
 	try {
 		const { rows } = await pool.query(
@@ -140,7 +240,35 @@ router.get('/:id', async (req, res, next) => {
 	}
 });
 
-// POST /api/cards
+/**
+ * @openapi
+ * /api/cards:
+ *   post:
+ *     summary: Create a card
+ *     description: Creates a new card owned by the authenticated user.
+ *     tags: [Cards]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CardCreateInput'
+ *     responses:
+ *       201:
+ *         description: Card created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Card'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.post(
 	'/',
 	[
@@ -187,7 +315,44 @@ router.post(
 	}
 );
 
-// PUT /api/cards/:id
+/**
+ * @openapi
+ * /api/cards/{id}:
+ *   put:
+ *     summary: Update a card
+ *     description: Updates an existing card owned by the authenticated user. Only provided fields will be updated.
+ *     tags: [Cards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Card id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CardUpdateInput'
+ *     responses:
+ *       200:
+ *         description: Updated card (raw DB row)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Card'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Card not found
+ *       500:
+ *         description: Server error
+ */
 router.put(
 	'/:id',
 	[
@@ -249,7 +414,32 @@ router.put(
 	}
 );
 
-// DELETE /api/cards/:id (soft delete)
+/**
+ * @openapi
+ * /api/cards/{id}:
+ *   delete:
+ *     summary: Soft-delete a card
+ *     description: Marks the card as deleted by setting `deleted_at`. Only the owner can delete.
+ *     tags: [Cards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Card id
+ *     responses:
+ *       204:
+ *         description: Deleted (no content)
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Card not found
+ *       500:
+ *         description: Server error
+ */
 router.delete('/:id', async(req, res, next) => {
 	try{
 		await pool.query(
@@ -265,3 +455,66 @@ router.delete('/:id', async(req, res, next) => {
 
 
 module.exports = router;
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Card:
+ *       type: object
+ *       properties:
+ *         id: { type: integer, example: 123 }
+ *         name: { type: string, example: "Charizard" }
+ *         set_id: { type: integer, example: 42 }
+ *         type_id: { type: integer, example: 3 }
+ *         user_id: { type: integer, example: 9 }
+ *         no_in_set: { type: integer, nullable: true, example: 4 }
+ *         image_small: { type: string, format: uri, nullable: true }
+ *         image_large: { type: string, format: uri, nullable: true }
+ *         rarity: { type: string, nullable: true, example: "Rare Holo" }
+ *         price_low: { type: number, format: float, nullable: true, example: 12.5 }
+ *         price_mid: { type: number, format: float, nullable: true, example: 25.0 }
+ *         price_high: { type: number, format: float, nullable: true, example: 80.0 }
+ *         price_market: { type: number, format: float, nullable: true, example: 28.9 }
+ *         created_at: { type: string, format: date-time, nullable: true }
+ *         updated_at: { type: string, format: date-time, nullable: true }
+ *         deleted_at: { type: string, format: date-time, nullable: true }
+ *     CardView:
+ *       allOf:
+ *         - $ref: '#/components/schemas/Card'
+ *         - type: object
+ *           properties:
+ *             series_name: { type: string, example: "Sword & Shield" }
+ *             set_name: { type: string, example: "Darkness Ablaze" }
+ *             type_name: { type: string, example: "Fire" }
+ *             user_name: { type: string, example: "albin" }
+ *     CardCreateInput:
+ *       type: object
+ *       required: [name, set_id, type_id]
+ *       properties:
+ *         name: { type: string, example: "Charizard" }
+ *         set_id: { type: integer, example: 42 }
+ *         type_id: { type: integer, example: 3 }
+ *         no_in_set: { type: integer, minimum: 1, nullable: true, example: 4 }
+ *         image_small: { type: string, format: uri, nullable: true }
+ *         image_large: { type: string, format: uri, nullable: true }
+ *         rarity: { type: string, nullable: true }
+ *         price_low: { type: number, format: float, nullable: true }
+ *         price_mid: { type: number, format: float, nullable: true }
+ *         price_high: { type: number, format: float, nullable: true }
+ *         price_market: { type: number, format: float, nullable: true }
+ *     CardUpdateInput:
+ *       type: object
+ *       properties:
+ *         name: { type: string }
+ *         set_id: { type: integer }
+ *         type_id: { type: integer }
+ *         no_in_set: { type: integer, minimum: 1, nullable: true }
+ *         image_small: { type: string, format: uri, nullable: true }
+ *         image_large: { type: string, format: uri, nullable: true }
+ *         rarity: { type: string, nullable: true }
+ *         price_low: { type: number, format: float, nullable: true }
+ *         price_mid: { type: number, format: float, nullable: true }
+ *         price_high: { type: number, format: float, nullable: true }
+ *         price_market: { type: number, format: float, nullable: true }
+ */
