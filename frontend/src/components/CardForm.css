@@ -38,7 +38,7 @@
   width: 100%;
   margin-top: 4px;
   padding: 14px 16px;
-  background: var(--input-bg);
+  background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--text);

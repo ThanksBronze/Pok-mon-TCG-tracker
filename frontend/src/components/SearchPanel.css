@@ -52,7 +52,7 @@
   width: 100%;
   padding: 14px 16px;
   font-size: 1rem;
-  background: var(--input-bg);
+  background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--text);
@@ -67,19 +67,106 @@
   box-shadow: 0 0 0 3px rgba(154,123,255,0.4);
 }
 
-/* If you ever need to disable a select */
 .facets select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Responsive: stack filters on narrow screens */
 @media (max-width: 500px) {
   .search-panel {
     width: calc(100% - 2rem);
     margin: 1rem auto;
     padding: 1rem;
   }
+  .facets {
+    grid-template-columns: 1fr;
+  }
+}
+
+.search-top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-top-row input[type="search"] {
+	flex: 1;
+}
+
+.filters-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filter-toggle {
+  height: 100%;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color .2s, box-shadow .2s, filter .2s, transform .1s;
+  backdrop-filter: blur(8px);
+}
+
+.filter-toggle:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  border-color: #b5aaff;
+  box-shadow: 0 0 0 3px rgba(154,123,255,0.2);
+}
+
+.filter-toggle:active {
+  transform: translateY(1px);
+}
+
+.filter-badge {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,#9e7bff,#8360e0);
+  color: #fff;
+  font-size: .8rem;
+  text-align: center;
+}
+
+.chevron {
+  transition: transform .2s ease;
+  opacity: .8;
+}
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.facets-collapsible {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .25s ease, opacity .2s ease;
+  opacity: 0;
+}
+.facets-collapsible.open {
+  max-height: 600px;
+  opacity: 1;
+}
+
+.facets {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+
+@media (max-width: 500px) {
   .facets {
     grid-template-columns: 1fr;
   }

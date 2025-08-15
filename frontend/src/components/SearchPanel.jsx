@@ -19,6 +19,9 @@ function paramsToKey(p) {
 export default function SearchPanel({ onResults }) {
 	const [query, setQuery] = useState('');
 	const [filters, setFilters] = useState({ series: '', set: '', type: '', rarity: '' });
+
+	const [filtersOpen, setFiltersOpen] = useState(false);
+
 	const [seriesList, setSeriesList] = useState([]);
 	const [setsList, setSetsList] = useState([]);
 	const [typesList, setTypesList] = useState([]);
@@ -80,58 +83,90 @@ export default function SearchPanel({ onResults }) {
 		};
 	}, [query, filters, onResults]);
 
+	const selectedCount = ['series','set','type','rarity'].reduce((n, k) => n + (filters[k] ? 1 : 0), 0);
+
 	return (
 		<div className="search-panel">
-			<input
-				type="search"
-				placeholder="Search cards…"
-				value={query}
-				onChange={e => setQuery(e.target.value)}
-			/>
-
-			<div className="facets">
-				<select
-					value={filters.series}
-					onChange={e => setFilters(f => ({ ...f, series: e.target.value, set: '' }))}
+			<div className="search-top-row">
+				<input
+					type="search"
+					placeholder="Search cards…"
+					value={query}
+					onChange={e => setQuery(e.target.value)}
+				/>
+				<button
+					type="button"
+					className="filter-toggle"
+					onClick={() => setFiltersOpen(o => !o)}
 				>
-					<option value="">— all series —</option>
-					{seriesList.map(s => (
-						<option key={s.id} value={s.id}>{s.name}</option>
-					))}
-				</select>
+					<span>Filters</span>
+					{selectedCount > 0 && <span className="filter-badge">{selectedCount}</span>}
+					<svg
+						className={`chevron ${filtersOpen ? 'open' : ''}`}
+						width="16" height="16"
+						viewBox="0 0 24 24"
+					>
+						<path
+							d="M7 10l5 5 5-5"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						/>
+					</svg>
+				</button>
+			</div>
 
-				<select
-					value={filters.set}
-					onChange={e => setFilters(f => ({ ...f, set: e.target.value }))}
-					disabled={!filters.series}
-				>
-					<option value="">— all sets —</option>
-					{setsList
-						.filter(s => s.series_id === +filters.series)
-						.map(s => (
-							<option key={s.id} value={s.id}>{s.name_of_expansion}</option>
+			{/* Collapsible filters */}
+			<div
+				id="filters-section"
+				className={`facets-collapsible ${filtersOpen ? 'open' : ''}`}
+			>
+				<div className="facets">
+					<select
+						value={filters.series}
+						onChange={e => setFilters(f => ({ ...f, series: e.target.value, set: '' }))}
+					>
+						<option value="">— all series —</option>
+						{seriesList.map(s => (
+							<option key={s.id} value={s.id}>{s.name}</option>
 						))}
-				</select>
+					</select>
 
-				<select
-					value={filters.type}
-					onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
-				>
-					<option value="">— all types —</option>
-					{typesList.map(t => (
-						<option key={t.id} value={t.id}>{t.name}</option>
-					))}
-				</select>
+					<select
+						value={filters.set}
+						onChange={e => setFilters(f => ({ ...f, set: e.target.value }))}
+						disabled={!filters.series}
+					>
+						<option value="">— all sets —</option>
+						{setsList
+							.filter(s => s.series_id === +filters.series)
+							.map(s => (
+								<option key={s.id} value={s.id}>{s.name_of_expansion}</option>
+							))}
+					</select>
 
-				<select
-					value={filters.rarity}
-					onChange={e => setFilters(f => ({ ...f, rarity: e.target.value }))}
-				>
-					<option value="">— all rarities —</option>
-					{['Common', 'Uncommon', 'Rare', 'Mythic'].map(r => (
-						<option key={r} value={r}>{r}</option>
-					))}
-				</select>
+					<select
+						value={filters.type}
+						onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
+					>
+						<option value="">— all types —</option>
+						{typesList.map(t => (
+							<option key={t.id} value={t.id}>{t.name}</option>
+						))}
+					</select>
+
+					<select
+						value={filters.rarity}
+						onChange={e => setFilters(f => ({ ...f, rarity: e.target.value }))}
+					>
+						<option value="">— all rarities —</option>
+						{['Common', 'Uncommon', 'Rare', 'Mythic'].map(r => (
+							<option key={r} value={r}>{r}</option>
+						))}
+					</select>
+				</div>
 			</div>
 		</div>
 	);

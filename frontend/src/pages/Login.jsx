@@ -70,7 +70,6 @@ export default function Login() {
 									placeholder=""
 								/>
 								<div className="password-toggle">
-									{/* enkel eye-ikon: */}
 									<svg viewBox="0 0 24 24" width="20" height="20">
 										<path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
 										<circle cx="12" cy="12" r="2.5"/>
