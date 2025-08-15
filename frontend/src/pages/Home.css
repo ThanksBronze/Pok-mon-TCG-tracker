@@ -1,0 +1,99 @@
+:root {
+	--bg: #2f1f5b;
+	--panel-bg: #3f2d7f;
+	--input-bg: rgba(255,255,255,0.06);
+	--radius: 16px;
+	--shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+	--btn-gradient: linear-gradient(90deg,#9e7bff,#8360e0);
+	--text: #f1f1fb;
+	--muted: rgba(255,255,255,0.7);
+	--border: rgba(255,255,255,0.1);
+	font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.page-actions {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  width: min(960px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.add-card-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+	line-height: 1;
+  padding: 10px 14px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, filter .2s, transform .1s;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  margin-top: 1.5rem;
+	margin-bottom: 2rem;
+}
+
+.add-card-toggle:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  border-color: #b5aaff;
+  box-shadow: 0 0 0 3px rgba(154,123,255,0.2);
+}
+
+.add-card-toggle:active {
+  transform: translateY(1px);
+}
+
+.add-card-toggle .chevron {
+  transition: transform .2s ease;
+  opacity: .8;
+}
+.add-card-toggle .chevron.open {
+  transform: rotate(180deg);
+}
+
+.add-card-collapsible {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height .28s ease, opacity .22s ease;
+}
+
+.add-card-collapsible.open {
+  max-height: 1200px;
+  opacity: 1;
+}
+
+.add-card-collapsible:not(.open) + .search-panel::before {
+  content: "";
+  display: block;
+  height: 0;
+  margin: 0;
+}
+
+.add-card-collapsible.open .card-form {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 500px) {
+  .page-actions {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 10;
+  }
+
+  .add-card-toggle {
+    width: auto;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
