@@ -69,28 +69,33 @@ export default function CardForm({ onSuccess }) {
 		return Number.isFinite(v) ? v : undefined;
 	}
 
-	async function withRetry(fn, {
-		retries = 2,
-		baseDelay = 400,
-		factor = 2,
-		retryStatuses = [500, 502, 503, 504],
-		onRetry = (attempt, status) => {}
-				} = {}) {
-		let attempt = 0;
-		while (true) {
+	async function withRetry(
+		fn,
+		{
+			retries = 2,
+			baseDelay = 400,
+			factor = 2,
+			retryStatuses = [500, 502, 503, 504],
+			onRetry,
+		} = {}
+	){
+		for (let attempt = 0; attempt <= retries; attempt++) {
 			try {
 				return await fn();
 			} catch (err) {
 				const status = err?.response?.status ?? err?.status;
 				const canRetry = retryStatuses.includes(status) && attempt < retries;
 				if (!canRetry) throw err;
-				attempt++;
-				onRetry(attempt, status);
-				const delay = baseDelay * Math.pow(factor, attempt - 1);
-				await new Promise(r => setTimeout(r, delay));
+	
+				if (typeof onRetry === 'function') {
+					onRetry(attempt + 1, status);
+				}
+	
+				const delay = baseDelay * Math.pow(factor, attempt);
+				await new Promise((r) => setTimeout(r, delay));
 			}
 		}
-				}
+	}
 
 	const handleSubmit = async e => {
 		e.preventDefault();
@@ -110,7 +115,10 @@ export default function CardForm({ onSuccess }) {
 			try {
 				const r = await withRetry(
 					() => api.get(`/tcg/cards/${cardApiId}`),
-					{onRetry: (n,s) => console.warn('External server error, Retry #${n} /tcg/cards (status ${s})')}
+					{
+						onRetry: (n, s) =>
+							console.warn(`External server error, Retry #${n} /tcg/cards (status ${s})`),
+					}
 				);
 				const tcgCard = r.data.data;
 	
